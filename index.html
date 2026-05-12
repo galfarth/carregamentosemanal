@@ -302,10 +302,62 @@
   }
   .toolbar {
     padding:18px;
+    margin-bottom:0;
+  }
+  .filter-panel {
+    overflow:hidden;
+  }
+  .filter-panel > summary {
+    list-style:none;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    margin:-18px -18px 0;
+    padding:16px 18px;
+    border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg, #fff, #f7fbfe);
+  }
+  .filter-panel > summary::-webkit-details-marker { display:none; }
+  .filter-title {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+    color:var(--brand-navy-dark);
+    font-size:.95rem;
+    font-weight:900;
+  }
+  .filter-title::before {
+    content:'';
+    width:4px;
+    height:20px;
+    border-radius:999px;
+    background:linear-gradient(180deg, var(--brand-cyan), var(--brand-navy));
+    flex:0 0 auto;
+  }
+  .filter-toggle {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:34px;
+    height:34px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:#eef5fb;
+    color:var(--brand-navy);
+    flex:0 0 auto;
+    transition:transform .18s, background .18s;
+  }
+  .filter-toggle svg { width:17px; height:17px; transition:transform .18s; }
+  .filter-panel:not([open]) > summary { margin-bottom:-18px; border-bottom:none; }
+  .filter-panel:not([open]) .filter-toggle svg { transform:rotate(-90deg); }
+  .filter-body {
     display:grid;
     grid-template-columns:1fr;
     gap:14px;
-    margin-bottom:0;
+    padding-top:16px;
   }
   .search-control { grid-column:auto; }
   .toolbar-actions {
@@ -375,8 +427,16 @@
     border:1px solid var(--border);
   }
   .btn svg { width:16px; height:16px; }
-  .btn.loading svg { animation:spin .8s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
+  .truck-loading { display:none; }
+  .btn.loading .refresh-icon { display:none; }
+  .btn.loading .truck-loading {
+    display:block;
+    animation:truckDrive .9s ease-in-out infinite;
+  }
+  @keyframes truckDrive {
+    0%, 100% { transform:translateX(-2px); }
+    50% { transform:translateX(3px); }
+  }
 
   .summary-grid {
     display:grid;
@@ -609,7 +669,12 @@
     font-size:.76rem;
     font-weight:600;
   }
-  .chart-wrap { height:340px; padding:18px 20px 22px; }
+  .chart-wrap {
+    height:360px;
+    padding:18px 20px 22px;
+    min-width:0;
+    overflow:hidden;
+  }
 
   .table-card { overflow:hidden; margin-bottom:18px; }
   .table-details summary {
@@ -709,7 +774,14 @@
     height:52px;
     border-radius:18px;
     background:#eef5fb;
-    font-size:1.35rem;
+    color:var(--brand-navy);
+  }
+  .empty .empty-icon svg { width:30px; height:30px; }
+  .empty.loading .empty-icon {
+    background:linear-gradient(135deg, #e0f7fb, #eef5fb);
+  }
+  .empty.loading .empty-icon svg {
+    animation:truckDrive 1s ease-in-out infinite;
   }
   footer {
     padding:24px 0 12px;
@@ -724,10 +796,19 @@
   }
 
   @media (max-width:1480px) {
-    .toolbar { grid-template-columns:repeat(3, minmax(0, 1fr)); }
-    .search-control, .toolbar-actions { grid-column:span 3; }
+    .filter-body { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .search-control, .toolbar-actions { grid-column:1 / -1; }
     .btn { align-self:auto; }
     .summary-grid, .kpi-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width:1360px) {
+    .layout-grid { grid-template-columns:minmax(260px, 300px) minmax(0, 1fr); }
+    .dashboard-grid { grid-template-columns:1fr; }
+    .panel-wide { grid-column:auto; }
+    .chart-wrap { height:330px; }
+    .summary-value { white-space:normal; }
+    .kpi-card { min-height:132px; padding:18px 18px 15px; }
+    .kpi-value { font-size:clamp(1.55rem, 2vw, 2.2rem); letter-spacing:-.03em; }
   }
   @media (max-width:1120px) {
     .header-inner { grid-template-columns:1fr; }
@@ -736,13 +817,14 @@
     .panel-wide { grid-column:auto; }
     .layout-grid { grid-template-columns:1fr; }
     .sidebar { position:static; }
-    .toolbar { position:relative; top:auto; grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .toolbar { position:relative; top:auto; }
+    .filter-body { grid-template-columns:repeat(2, minmax(0, 1fr)); }
     .search-control, .toolbar-actions { grid-column:span 2; }
   }
   @media (max-width:760px) {
     header { padding:24px 18px 72px; }
     main { padding:0 18px 24px; margin-top:-44px; }
-    .toolbar { grid-template-columns:1fr; }
+    .filter-body { grid-template-columns:1fr; }
     .search-control, .toolbar-actions { grid-column:span 1; }
     .summary-grid, .kpi-grid { grid-template-columns:1fr 1fr; }
     .whatsapp-bar { flex-direction:column; align-items:flex-start; }
@@ -798,7 +880,19 @@
 <main>
   <div class="layout-grid">
     <aside class="sidebar">
-      <section class="toolbar panel" aria-label="Filtros do painel">
+      <details class="toolbar panel filter-panel" aria-label="Filtros do painel" open>
+        <summary>
+          <span>
+            <span class="filter-title">Filtros</span>
+            <span class="card-subtitle">Clique para minimizar</span>
+          </span>
+          <span class="filter-toggle" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 6l4 4 4-4"></path>
+            </svg>
+          </span>
+        </summary>
+        <div class="filter-body">
         <div class="control search-control">
           <label for="f-search">Busca geral</label>
           <input id="f-search" type="search" placeholder="Produto, tipo, embalagem ou data">
@@ -834,14 +928,21 @@
         <div class="toolbar-actions">
           <button class="btn btn-ghost" id="btn-clear" type="button" onclick="clearFilters()">Limpar</button>
           <button class="btn btn-primary" id="btn-refresh" type="button" onclick="loadData()">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M13.5 2.5A6.5 6.5 0 1 1 2 9"></path>
-          <polyline points="1,5 2,9 6,8"></polyline>
-        </svg>
+            <svg class="refresh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13.5 2.5A6.5 6.5 0 1 1 2 9"></path>
+              <polyline points="1,5 2,9 6,8"></polyline>
+            </svg>
+            <svg class="truck-loading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 7h11v9H3z"></path>
+              <path d="M14 10h4l3 3v3h-7z"></path>
+              <circle cx="7" cy="18" r="2"></circle>
+              <circle cx="17" cy="18" r="2"></circle>
+            </svg>
         Atualizar
       </button>
     </div>
-  </section>
+        </div>
+  </details>
 
       <section class="whatsapp-bar panel">
         <div>
@@ -987,7 +1088,7 @@
             </tr>
           </thead>
           <tbody id="table-body">
-            <tr><td colspan="6"><div class="empty"><div class="empty-icon">⏳</div><div>Carregando dados…</div></div></td></tr>
+            <tr><td colspan="6"><div class="empty loading"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"></path><path d="M14 10h4l3 3v3h-7z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg></div><div>Carregando dados…</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1033,6 +1134,14 @@ const $ = id => document.getElementById(id);
 const fmtTon = n => Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
 const fmtTonShort = n => Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits:0, maximumFractionDigits:2 });
 const formatWhatsAppQty = n => `${fmtTonShort(n)} t`;
+const truckIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"></path><path d="M14 10h4l3 3v3h-7z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>';
+const isCompactChart = () => window.matchMedia('(max-width: 1360px)').matches;
+const shouldShowChartLabel = (ctx, totalItems = 0, minValue = 0) => {
+  const value = Number(ctx.dataset.data[ctx.dataIndex] || 0);
+  if (!value || value < minValue) return false;
+  if (isCompactChart()) return totalItems <= 5;
+  return totalItems <= 8;
+};
 
 const normalize = value => String(value || '')
   .trim()
@@ -1283,6 +1392,7 @@ async function loadData() {
   const btn = $('btn-refresh');
   btn.classList.add('loading');
   showError('');
+  renderTableLoading();
   $('meta-status').textContent = 'Atualizando painel';
   try {
     if (!SHEET_CSV_URL) {
@@ -1310,6 +1420,12 @@ async function loadData() {
   } finally {
     btn.classList.remove('loading');
   }
+}
+
+function renderTableLoading() {
+  const tbody = $('table-body');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="6"><div class="empty loading"><div class="empty-icon">${truckIcon}</div><div>Carregando dados...</div></div></td></tr>`;
 }
 
 function uniqueBy(keyFn) {
@@ -1535,7 +1651,7 @@ function renderChartProduto(data) {
           label:ctx => ` ${ctx.dataset.label}: ${fmtTon(ctx.parsed.y)} ton`
         } },
         datalabels:{
-          display:(ctx) => Number(ctx.dataset.data[ctx.dataIndex] || 0) > 0,
+          display:(ctx) => shouldShowChartLabel(ctx, entries.length, 10),
           color:'#12213f',
           anchor:'end',
           align:'end',
@@ -1547,7 +1663,7 @@ function renderChartProduto(data) {
         }
       },
       scales:{
-        x:{ stacked:true, grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, maxRotation:0, minRotation:0 } },
+        x:{ stacked:true, grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, autoSkip:true, maxTicksLimit:isCompactChart() ? 5 : 8, maxRotation:0, minRotation:0 } },
         y:{ stacked:true, beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
@@ -1579,6 +1695,7 @@ function renderChartPack(data) {
         legend:{ display:false },
         tooltip:{ callbacks:{ label:ctx => ` ${fmtTon(ctx.parsed.x)} ton` } },
         datalabels:{
+          display:(ctx) => shouldShowChartLabel(ctx, entries.length, 10),
           color:'#12213f',
           anchor:'end',
           align:'right',
@@ -1590,7 +1707,7 @@ function renderChartPack(data) {
         }
       },
       scales:{
-        y:{ grid:{ display:false }, ticks:{ color:'#475569', font:{ family:'DM Sans', size:11, weight:'700' } } },
+        y:{ grid:{ display:false }, ticks:{ color:'#475569', font:{ family:'DM Sans', size:11, weight:'700' }, autoSkip:false } },
         x:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
@@ -1688,6 +1805,7 @@ function renderChartDia(data) {
           label:ctx => ` ${fmtTon(type === 'bar' ? ctx.parsed.y : ctx.parsed.y)} ton`
         } },
         datalabels:{
+          display:(ctx) => shouldShowChartLabel(ctx, labels.length, type === 'line' ? 10 : 0),
           color:'#12213f',
           anchor:'end',
           align:type === 'line' ? 'top' : 'end',
@@ -1699,7 +1817,7 @@ function renderChartDia(data) {
         }
       },
       scales:{
-        x:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, maxRotation:0, minRotation:0 } },
+        x:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, autoSkip:true, maxTicksLimit:isCompactChart() ? 7 : 12, maxRotation:0, minRotation:0 } },
         y:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
