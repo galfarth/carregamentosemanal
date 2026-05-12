@@ -1403,6 +1403,14 @@ function getISOWeek(date) {  if (!(date instanceof Date) || Number.isNaN(date.ge
   return String(weekNo).padStart(2, '0');
 }
 
+function currentWeekValue() {
+  return String(Number(getISOWeek(new Date())));
+}
+
+function currentYearValue() {
+  return String(new Date().getFullYear());
+}
+
 function mainTypeOf(row) {
   if (isMainType(row.TIPO_CARREGAMENTO)) return row.TIPO_CARREGAMENTO;
   if (isMainType(row.CLASSIFICACAO)) return row.CLASSIFICACAO.split('-')[0].trim();
@@ -1691,6 +1699,24 @@ function updateDynamicFilters(pass = 1) {
 
 function populateFilters() {
   updateDynamicFilters();
+  applyCurrentWeekDefault();
+}
+
+function setSelectIfOptionExists(id, value) {
+  const select = $(id);
+  if (!select || !value) return false;
+  const option = [...select.options].find(item => String(Number(item.value)) === String(Number(value)) || item.value === value);
+  if (!option) return false;
+  select.value = option.value;
+  return true;
+}
+
+function applyCurrentWeekDefault() {
+  const state = getFilterState();
+  if (state.ano || state.semana || state.data || state.mes || state.produto || state.embalagem || state.tipo || state.search) return;
+  const selectedYear = setSelectIfOptionExists('f-ano', currentYearValue());
+  if (selectedYear) updateDynamicFilters();
+  if (setSelectIfOptionExists('f-semana', currentWeekValue())) updateDynamicFilters();
 }
 
 function filtered() {
@@ -2157,6 +2183,7 @@ function escapeHTML(value) {
 function clearFilters() {
   ['f-search','f-ano','f-mes','f-semana','f-data','f-tipo','f-embalagem','f-produto'].forEach(id => $(id).value = '');
   updateDynamicFilters();
+  applyCurrentWeekDefault();
   render();
 }
 
