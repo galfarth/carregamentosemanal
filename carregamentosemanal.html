@@ -1776,23 +1776,10 @@ function renderCharts(data) {
 }
 
 function renderChartProduto(data) {
-  const prodMap = {};
-  data.forEach(row => {
-    const produto = row.PRODUTO || 'Não informado';
-    const tipo = mainTypeOf(row);
-    if (!prodMap[produto]) prodMap[produto] = { simples:0, mist:0, outros:0, total:0 };
-    const qtd = Number(row.QUANTIDADE || 0);
-    prodMap[produto].total += qtd;
-    if (normalize(tipo).includes('SIMPLES')) prodMap[produto].simples += qtd;
-    else if (normalize(tipo).includes('MISTURADORA')) prodMap[produto].mist += qtd;
-    else prodMap[produto].outros += qtd;
-  });
-  const entries = Object.entries(prodMap).sort((a, b) => b[1].total - a[1].total);
+  const entries = Object.entries(groupSum(data, r => r.PRODUTO)).sort((a, b) => b[1] - a[1]);
   const fullLabels = entries.map(([label]) => label);
   const labels = fullLabels;
-  const simples = entries.map(([, value]) => value.simples);
-  const mist = entries.map(([, value]) => value.mist);
-  const outros = entries.map(([, value]) => value.outros);
+  const values = entries.map(([, value]) => value);
   $('subtitle-produto').textContent = `${entries.length} produto(s) do filtro atual`;
   sizeChartWrap('wrap-produto', entries.length, 'horizontal');
   if (chartProduto) chartProduto.destroy();
@@ -1800,11 +1787,13 @@ function renderChartProduto(data) {
     type:'bar',
     data:{
       labels,
-      datasets:[
-        { label:'Elemento Simples', data:simples, backgroundColor:'#3b82f6', borderRadius:8, borderSkipped:false },
-        { label:'Misturadora', data:mist, backgroundColor:'#7c3aed', borderRadius:8, borderSkipped:false },
-        { label:'Outros', data:outros, backgroundColor:'#94a3b8', borderRadius:8, borderSkipped:false }
-      ]
+      datasets:[{
+        label:'Toneladas',
+        data:values,
+        backgroundColor:'#3b82f6',
+        borderRadius:10,
+        borderSkipped:false
+      }]
     },
     options:{
       indexAxis:'y',
@@ -1812,10 +1801,10 @@ function renderChartProduto(data) {
       maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
       plugins:{
-        legend:{ position:'bottom', labels:{ usePointStyle:true, boxWidth:8, padding:16, font:{ family:'DM Sans', size:11, weight:'700' } } },
+        legend:{ display:false },
         tooltip:{ callbacks:{
           title:(items) => fullLabels[items[0]?.dataIndex] || items[0]?.label || '',
-          label:ctx => ` ${ctx.dataset.label}: ${fmtTon(ctx.parsed.y)} ton`
+          label:ctx => ` Total: ${fmtTon(ctx.parsed.x)} ton`
         } },
         datalabels:{
           display:(ctx) => Number(ctx.dataset.data[ctx.dataIndex] || 0) > 0,
@@ -1825,7 +1814,7 @@ function renderChartProduto(data) {
           offset:4,
           clamp:true,
           clip:false,
-          font:{ family:'DM Sans', size:9, weight:'800' },
+          font:{ family:'DM Sans', size:10, weight:'900' },
           formatter:(value) => fmtTon(value)
         }
       },
