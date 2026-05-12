@@ -290,7 +290,15 @@
   .layout-grid.filters-collapsed {
     grid-template-columns:72px minmax(0, 1fr);
   }
+  .filter-scrim {
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:19;
+    background:rgba(15,23,42,.18);
+  }
   .sidebar {
+    grid-column:1;
     position:sticky;
     top:18px;
     display:flex;
@@ -306,6 +314,7 @@
     display:none;
   }
   .content {
+    grid-column:2;
     display:flex;
     flex-direction:column;
     gap:18px;
@@ -679,6 +688,7 @@
   .dashboard-grid > *:nth-child(1) { animation-delay:.1s; }
   .dashboard-grid > *:nth-child(2) { animation-delay:.18s; }
   .dashboard-grid > *:nth-child(3) { animation-delay:.26s; }
+  .dashboard-grid > *:nth-child(4) { animation-delay:.34s; }
   .panel-wide { grid-column:1 / -1; }
   .card-header {
     padding:16px 18px 0;
@@ -712,7 +722,18 @@
     height:300px;
     padding:14px 18px 18px;
     min-width:0;
-    overflow:hidden;
+    overflow:auto;
+    scrollbar-width:thin;
+  }
+  .chart-canvas {
+    position:relative;
+    min-width:100%;
+    height:100%;
+  }
+  .chart-canvas canvas {
+    display:block;
+    width:100% !important;
+    height:100% !important;
   }
 
   .table-card { overflow:hidden; margin-bottom:18px; }
@@ -850,6 +871,33 @@
     .meta-label { font-size:.62rem; }
     .meta-value { font-size:.8rem; margin-top:3px; }
     main { margin-top:12px; }
+    body.filter-open { overflow:hidden; }
+    body.filter-open .filter-scrim { display:block; }
+    .layout-grid {
+      grid-template-columns:72px minmax(0, 1fr);
+    }
+    .sidebar {
+      position:fixed;
+      top:20px;
+      left:20px;
+      z-index:20;
+      width:340px;
+      max-height:calc(100vh - 108px);
+      overflow:auto;
+      padding-right:0;
+    }
+    .layout-grid.filters-collapsed .sidebar {
+      width:60px;
+      overflow:visible;
+      top:50%;
+      transform:translateY(-50%);
+    }
+    .layout-grid:not(.filters-collapsed) .sidebar {
+      transform:none;
+    }
+    .layout-grid:not(.filters-collapsed) .whatsapp-bar {
+      display:flex;
+    }
     .filter-body { grid-template-columns:repeat(2, minmax(0, 1fr)); }
     .search-control, .toolbar-actions { grid-column:1 / -1; }
     .btn { align-self:auto; }
@@ -907,7 +955,9 @@
     .dashboard-grid { grid-template-columns:1fr; }
     .panel-wide { grid-column:auto; }
     .layout-grid { grid-template-columns:1fr; }
-    .sidebar { position:static; }
+    .sidebar { position:static; width:auto; max-height:none; overflow:visible; }
+    body.filter-open { overflow:auto; }
+    body.filter-open .filter-scrim { display:none; }
     .toolbar { position:relative; top:auto; }
     .filter-body { grid-template-columns:repeat(2, minmax(0, 1fr)); }
     .search-control, .toolbar-actions { grid-column:span 2; }
@@ -969,6 +1019,7 @@
 </header>
 
 <main>
+  <div class="filter-scrim" id="filter-scrim" aria-hidden="true"></div>
   <div class="layout-grid" id="layout-grid">
     <aside class="sidebar">
       <details class="toolbar panel filter-panel" id="filter-panel" aria-label="Filtros do painel" open>
@@ -1130,10 +1181,10 @@
       <div class="card-header">
         <div>
           <div class="card-title">Volume por Produto</div>
-          <div class="card-subtitle" id="subtitle-produto">Top produtos do filtro atual</div>
+          <div class="card-subtitle" id="subtitle-produto">Todos os produtos do filtro atual</div>
         </div>
       </div>
-      <div class="chart-wrap"><canvas id="chart-produto"></canvas></div>
+      <div class="chart-wrap"><div class="chart-canvas" id="wrap-produto"><canvas id="chart-produto"></canvas></div></div>
     </article>
     <article class="panel">
       <div class="card-header">
@@ -1142,7 +1193,16 @@
           <div class="card-subtitle">Comparativo entre formatos de expedição</div>
         </div>
       </div>
-      <div class="chart-wrap"><canvas id="chart-pack"></canvas></div>
+      <div class="chart-wrap"><div class="chart-canvas" id="wrap-pack"><canvas id="chart-pack"></canvas></div></div>
+    </article>
+    <article class="panel">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Elemento Simples x Misturadora</div>
+          <div class="card-subtitle">Comparativo direto do volume do filtro atual</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><div class="chart-canvas" id="wrap-tipo"><canvas id="chart-tipo"></canvas></div></div>
     </article>
     <article class="panel panel-wide">
       <div class="card-header">
@@ -1151,7 +1211,7 @@
           <div class="card-subtitle" id="subtitle-dia">Evolução temporal ajustada automaticamente para histórico</div>
         </div>
       </div>
-      <div class="chart-wrap"><canvas id="chart-dia"></canvas></div>
+      <div class="chart-wrap"><div class="chart-canvas" id="wrap-dia"><canvas id="chart-dia"></canvas></div></div>
     </article>
   </section>
     </div>
@@ -1215,6 +1275,7 @@ let allData = [];
 let chartProduto = null;
 let chartPack = null;
 let chartDia = null;
+let chartTipo = null;
 
 if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
   Chart.register(ChartDataLabels);
@@ -1233,6 +1294,18 @@ const shouldShowChartLabel = (ctx, totalItems = 0, minValue = 0) => {
   if (isCompactChart()) return totalItems <= 5;
   return totalItems <= 8;
 };
+function sizeChartWrap(id, count, orientation = 'vertical') {
+  const wrap = $(id);
+  if (!wrap) return;
+  const safeCount = Math.max(count, 1);
+  if (orientation === 'horizontal') {
+    wrap.style.height = Math.max(240, safeCount * 56 + 96) + 'px';
+    wrap.style.width = '100%';
+  } else {
+    wrap.style.height = '100%';
+    wrap.style.width = Math.max(100, safeCount * 76) + 'px';
+  }
+}
 
 const normalize = value => String(value || '')
   .trim()
@@ -1698,6 +1771,7 @@ function renderCharts(data) {
   if (typeof Chart === 'undefined') return;
   renderChartProduto(data);
   renderChartPack(data);
+  renderChartTipo(data);
   renderChartDia(data);
 }
 
@@ -1713,13 +1787,14 @@ function renderChartProduto(data) {
     else if (normalize(tipo).includes('MISTURADORA')) prodMap[produto].mist += qtd;
     else prodMap[produto].outros += qtd;
   });
-  const entries = Object.entries(prodMap).sort((a, b) => b[1].total - a[1].total).slice(0, 8);
+  const entries = Object.entries(prodMap).sort((a, b) => b[1].total - a[1].total);
   const fullLabels = entries.map(([label]) => label);
-  const labels = fullLabels.map(label => shortenLabel(label, 16));
+  const labels = fullLabels;
   const simples = entries.map(([, value]) => value.simples);
   const mist = entries.map(([, value]) => value.mist);
   const outros = entries.map(([, value]) => value.outros);
-  $('subtitle-produto').textContent = `Top ${entries.length} produtos do filtro atual`;
+  $('subtitle-produto').textContent = `${entries.length} produto(s) do filtro atual`;
+  sizeChartWrap('wrap-produto', entries.length, 'horizontal');
   if (chartProduto) chartProduto.destroy();
   chartProduto = new Chart($('chart-produto'), {
     type:'bar',
@@ -1732,6 +1807,7 @@ function renderChartProduto(data) {
       ]
     },
     options:{
+      indexAxis:'y',
       responsive:true,
       maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
@@ -1742,29 +1818,31 @@ function renderChartProduto(data) {
           label:ctx => ` ${ctx.dataset.label}: ${fmtTon(ctx.parsed.y)} ton`
         } },
         datalabels:{
-          display:false,
+          display:(ctx) => Number(ctx.dataset.data[ctx.dataIndex] || 0) > 0,
           color:'#12213f',
           anchor:'end',
-          align:'end',
-          offset:2,
+          align:'right',
+          offset:4,
           clamp:true,
           clip:false,
-          font:{ family:'DM Sans', size:10, weight:'800' },
+          font:{ family:'DM Sans', size:9, weight:'800' },
           formatter:(value) => fmtTon(value)
         }
       },
+      layout:{ padding:{ right:78 } },
       scales:{
-        x:{ stacked:true, grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, autoSkip:true, maxTicksLimit:isCompactChart() ? 5 : 8, maxRotation:0, minRotation:0 } },
-        y:{ stacked:true, beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
+        y:{ stacked:false, grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, autoSkip:false } },
+        x:{ stacked:false, beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
   });
 }
 
 function renderChartPack(data) {
-  const entries = Object.entries(groupSum(data, r => r.EMBALAGEM)).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const entries = Object.entries(groupSum(data, r => r.EMBALAGEM)).sort((a, b) => b[1] - a[1]);
   const labels = entries.map(([label]) => label);
   const values = entries.map(([, value]) => value);
+  sizeChartWrap('wrap-pack', entries.length, 'horizontal');
   if (chartPack) chartPack.destroy();
   chartPack = new Chart($('chart-pack'), {
     type:'bar',
@@ -1786,7 +1864,7 @@ function renderChartPack(data) {
         legend:{ display:false },
         tooltip:{ callbacks:{ label:ctx => ` ${fmtTon(ctx.parsed.x)} ton` } },
         datalabels:{
-          display:(ctx) => shouldShowChartLabel(ctx, entries.length, 10),
+          display:true,
           color:'#12213f',
           anchor:'end',
           align:'right',
@@ -1797,8 +1875,57 @@ function renderChartPack(data) {
           formatter:(value) => fmtTon(value)
         }
       },
+      layout:{ padding:{ right:78 } },
       scales:{
         y:{ grid:{ display:false }, ticks:{ color:'#475569', font:{ family:'DM Sans', size:11, weight:'700' }, autoSkip:false } },
+        x:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
+      }
+    }
+  });
+}
+
+function renderChartTipo(data) {
+  const simples = sum(data.filter(isSimplesRow));
+  const mist = sum(data.filter(isMistRow));
+  const outros = sum(data.filter(row => !isSimplesRow(row) && !isMistRow(row)));
+  const labels = ['Elemento Simples', 'Misturadora', 'Outros'];
+  const values = [simples, mist, outros];
+  sizeChartWrap('wrap-tipo', labels.length, 'horizontal');
+  if (chartTipo) chartTipo.destroy();
+  chartTipo = new Chart($('chart-tipo'), {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        label:'Toneladas',
+        data:values,
+        backgroundColor:['#3b82f6','#7c3aed','#94a3b8'],
+        borderRadius:10,
+        borderSkipped:false
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label:ctx => ` ${fmtTon(ctx.parsed.x)} ton` } },
+        datalabels:{
+          display:true,
+          color:'#12213f',
+          anchor:'end',
+          align:'right',
+          offset:4,
+          clamp:true,
+          clip:false,
+          font:{ family:'DM Sans', size:11, weight:'900' },
+          formatter:(value) => fmtTon(value)
+        }
+      },
+      layout:{ padding:{ right:82 } },
+      scales:{
+        y:{ grid:{ display:false }, ticks:{ color:'#475569', font:{ family:'DM Sans', size:11, weight:'800' }, autoSkip:false } },
         x:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
@@ -1865,6 +1992,7 @@ function renderChartDia(data) {
   }
 
   $('subtitle-dia').textContent = subtitle;
+  sizeChartWrap('wrap-dia', labels.length, 'vertical');
 
   if (chartDia) chartDia.destroy();
   chartDia = new Chart($('chart-dia'), {
@@ -1896,7 +2024,7 @@ function renderChartDia(data) {
           label:ctx => ` ${fmtTon(type === 'bar' ? ctx.parsed.y : ctx.parsed.y)} ton`
         } },
         datalabels:{
-          display:(ctx) => shouldShowChartLabel(ctx, labels.length, type === 'line' ? 10 : 0),
+          display:true,
           color:'#12213f',
           anchor:'end',
           align:type === 'line' ? 'top' : 'end',
@@ -1907,8 +2035,9 @@ function renderChartDia(data) {
           formatter:(value) => fmtTon(value)
         }
       },
+      layout:{ padding:{ top:18, right:24 } },
       scales:{
-        x:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, autoSkip:true, maxTicksLimit:isCompactChart() ? 7 : 12, maxRotation:0, minRotation:0 } },
+        x:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, autoSkip:false, maxRotation:45, minRotation:0 } },
         y:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
@@ -2053,13 +2182,23 @@ function syncFilterLayout() {
   const layout = $('layout-grid');
   const panel = $('filter-panel');
   if (!layout || !panel) return;
+  const floatingFilter = window.matchMedia('(max-width: 1480px) and (min-width: 1121px)').matches;
   layout.classList.toggle('filters-collapsed', !panel.open);
+  document.body.classList.toggle('filter-open', panel.open && floatingFilter);
   setTimeout(() => {
-    [chartProduto, chartPack, chartDia].forEach(chart => chart?.resize());
+    [chartProduto, chartPack, chartTipo, chartDia].forEach(chart => chart?.resize());
   }, 180);
 }
 
 $('filter-panel')?.addEventListener('toggle', syncFilterLayout);
+$('filter-scrim')?.addEventListener('click', () => {
+  const panel = $('filter-panel');
+  if (panel) panel.open = false;
+});
+window.addEventListener('resize', syncFilterLayout);
+window.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && $('filter-panel')) $('filter-panel').open = false;
+});
 if (window.matchMedia('(max-width: 1480px)').matches && $('filter-panel')) {
   $('filter-panel').open = false;
 }
