@@ -938,7 +938,7 @@
       grid-template-columns:repeat(4, minmax(0, 1fr));
     }
     .layout-grid:not(.filters-collapsed) .dashboard-grid { grid-template-columns:1fr; }
-    .panel-wide { grid-column:auto; }
+    .layout-grid:not(.filters-collapsed) .panel-wide { grid-column:auto; }
     .chart-wrap { height:260px; }
     .summary-value { white-space:normal; }
     .summary-card { min-height:76px; padding:14px 16px; }
@@ -1180,11 +1180,11 @@
     <article class="panel">
       <div class="card-header">
         <div>
-          <div class="card-title">Volume por Produto</div>
-          <div class="card-subtitle" id="subtitle-produto">Todos os produtos do filtro atual</div>
+          <div class="card-title">Elemento Simples x Misturadora</div>
+          <div class="card-subtitle">Comparativo direto do volume do filtro atual</div>
         </div>
       </div>
-      <div class="chart-wrap"><div class="chart-canvas" id="wrap-produto"><canvas id="chart-produto"></canvas></div></div>
+      <div class="chart-wrap"><div class="chart-canvas" id="wrap-tipo"><canvas id="chart-tipo"></canvas></div></div>
     </article>
     <article class="panel">
       <div class="card-header">
@@ -1195,14 +1195,14 @@
       </div>
       <div class="chart-wrap"><div class="chart-canvas" id="wrap-pack"><canvas id="chart-pack"></canvas></div></div>
     </article>
-    <article class="panel">
+    <article class="panel panel-wide">
       <div class="card-header">
         <div>
-          <div class="card-title">Elemento Simples x Misturadora</div>
-          <div class="card-subtitle">Comparativo direto do volume do filtro atual</div>
+          <div class="card-title">Volume por Produto</div>
+          <div class="card-subtitle" id="subtitle-produto">Todos os produtos do filtro atual</div>
         </div>
       </div>
-      <div class="chart-wrap"><div class="chart-canvas" id="wrap-tipo"><canvas id="chart-tipo"></canvas></div></div>
+      <div class="chart-wrap"><div class="chart-canvas" id="wrap-produto"><canvas id="chart-produto"></canvas></div></div>
     </article>
     <article class="panel panel-wide">
       <div class="card-header">
