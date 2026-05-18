@@ -432,6 +432,12 @@
     text-transform:uppercase;
     color:var(--muted);
   }
+  .filter-input-row {
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
   .control input, .control select {
     width:100%;
     height:42px;
@@ -456,6 +462,25 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat;
     background-position:right 12px center;
+  }
+  .filter-clear {
+    width:34px;
+    height:34px;
+    flex:0 0 34px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:#eef5fb;
+    color:var(--muted);
+    font:900 1rem/1 'DM Sans', sans-serif;
+    cursor:pointer;
+    display:grid;
+    place-items:center;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .filter-clear:hover {
+    background:#d9f3f8;
+    color:var(--brand-navy);
+    border-color:var(--brand-cyan);
   }
   .btn {
     height:42px;
@@ -970,6 +995,45 @@
     .table-toolbar { flex-direction:column; align-items:flex-start; }
     .chart-wrap { height:290px; }
   }
+  @media (min-width:1121px) {
+    .layout-grid,
+    .layout-grid.filters-collapsed {
+      grid-template-columns:330px minmax(0, 1fr);
+      align-items:start;
+    }
+    .sidebar {
+      grid-column:1;
+      position:sticky;
+      top:16px;
+      display:flex;
+      flex-direction:column;
+      flex-wrap:nowrap;
+      width:330px;
+      max-height:calc(100vh - 32px);
+      overflow:auto;
+      padding-right:4px;
+    }
+    .content {
+      grid-column:2;
+    }
+    .filter-body {
+      grid-template-columns:1fr;
+    }
+    .search-control,
+    .toolbar-actions {
+      grid-column:span 1;
+    }
+    .layout-grid.filters-collapsed .sidebar {
+      gap:18px;
+    }
+    .layout-grid.filters-collapsed .whatsapp-bar {
+      display:flex;
+    }
+    .layout-grid.filters-collapsed .summary-grid,
+    .layout-grid.filters-collapsed .kpi-grid {
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+    }
+  }
 </style>
 </head>
 <body>
@@ -1036,31 +1100,59 @@
         </div>
         <div class="control">
           <label for="f-ano">Ano</label>
-          <select id="f-ano"><option value="">Todos</option></select>
+          <div class="filter-input-row">
+            <input id="f-ano" list="dl-f-ano" type="text" placeholder="Todos" autocomplete="off">
+            <button class="filter-clear" type="button" onclick="clearFilter('f-ano')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de ano">×</button>
+          </div>
+          <datalist id="dl-f-ano"></datalist>
         </div>
         <div class="control">
           <label for="f-mes">Mês</label>
-          <select id="f-mes"><option value="">Todos</option></select>
+          <div class="filter-input-row">
+            <input id="f-mes" list="dl-f-mes" type="text" placeholder="Todos" autocomplete="off">
+            <button class="filter-clear" type="button" onclick="clearFilter('f-mes')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de mÃªs">×</button>
+          </div>
+          <datalist id="dl-f-mes"></datalist>
         </div>
         <div class="control">
           <label for="f-semana">Semana</label>
-          <select id="f-semana"><option value="">Todas</option></select>
+          <div class="filter-input-row">
+            <input id="f-semana" list="dl-f-semana" type="text" placeholder="Todas" autocomplete="off">
+            <button class="filter-clear" type="button" onclick="clearFilter('f-semana')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de semana">×</button>
+          </div>
+          <datalist id="dl-f-semana"></datalist>
         </div>
         <div class="control">
           <label for="f-data">Data</label>
-          <select id="f-data"><option value="">Todas</option></select>
+          <div class="filter-input-row">
+            <input id="f-data" list="dl-f-data" type="text" placeholder="Todas" autocomplete="off">
+            <button class="filter-clear" type="button" onclick="clearFilter('f-data')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de data">×</button>
+          </div>
+          <datalist id="dl-f-data"></datalist>
         </div>
         <div class="control">
           <label for="f-tipo">Tipo</label>
-          <select id="f-tipo"><option value="">Todos</option></select>
+          <div class="filter-input-row">
+            <input id="f-tipo" list="dl-f-tipo" type="text" placeholder="Todos" autocomplete="off">
+            <button class="filter-clear" type="button" onclick="clearFilter('f-tipo')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de tipo">×</button>
+          </div>
+          <datalist id="dl-f-tipo"></datalist>
         </div>
         <div class="control">
           <label for="f-embalagem">Embalagem</label>
-          <select id="f-embalagem"><option value="">Todas</option></select>
+          <div class="filter-input-row">
+            <input id="f-embalagem" list="dl-f-embalagem" type="text" placeholder="Todas" autocomplete="off">
+            <button class="filter-clear" type="button" onclick="clearFilter('f-embalagem')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de embalagem">×</button>
+          </div>
+          <datalist id="dl-f-embalagem"></datalist>
         </div>
         <div class="control">
           <label for="f-produto">Produto</label>
-          <select id="f-produto"><option value="">Todos</option></select>
+          <div class="filter-input-row">
+            <input id="f-produto" list="dl-f-produto" type="text" placeholder="Todos" autocomplete="off">
+            <button class="filter-clear" type="button" onclick="clearFilter('f-produto')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de produto">×</button>
+          </div>
+          <datalist id="dl-f-produto"></datalist>
         </div>
         <div class="toolbar-actions">
           <button class="btn btn-ghost" id="btn-clear" type="button" onclick="clearFilters()">Limpar</button>
@@ -1600,21 +1692,21 @@ function uniqueBy(keyFn) {
 }
 
 function fillSelect(id, values, defaultText) {
-  const select = $(id);
-  const current = select.value;
-  select.innerHTML = `<option value="">${defaultText}</option>`;
+  const input = $(id);
+  const list = $('dl-' + id);
+  if (!input || !list) return;
+  list.innerHTML = '';
   values.forEach(item => {
     const option = document.createElement('option');
     if (typeof item === 'object' && item !== null) {
       option.value = item.value;
-      option.textContent = item.label;
+      option.label = item.label;
     } else {
       option.value = item;
-      option.textContent = item;
+      option.label = item;
     }
-    select.appendChild(option);
+    list.appendChild(option);
   });
-  if ([...select.options].some(o => o.value === current)) select.value = current;
 }
 
 const SELECT_FILTERS = [
@@ -1647,6 +1739,16 @@ function hasActiveSelection() {
 
 function applyFilters(dataset, state = getFilterState(), excludeId = '') {
   const term = normalize(state.search || '');
+  const matchesFilter = (actual, expected) => {
+    if (!expected) return true;
+    const actualText = String(actual || '');
+    const expectedText = String(expected || '');
+    return actualText === expectedText || normalize(actualText).includes(normalize(expectedText));
+  };
+  const matchesMonth = (actual, expected) => {
+    if (!expected) return true;
+    return matchesFilter(actual, expected) || matchesFilter(monthName(actual), expected);
+  };
   return dataset.filter(row => {
     const rowAno = yearOf(row);
     const rowMes = monthOf(row);
@@ -1664,13 +1766,13 @@ function applyFilters(dataset, state = getFilterState(), excludeId = '') {
     ].join(' '));
 
     return (!term || haystack.includes(term)) &&
-      (excludeId === 'f-ano' || !state.ano || rowAno === state.ano) &&
-      (excludeId === 'f-mes' || !state.mes || rowMes === state.mes) &&
-      (excludeId === 'f-semana' || !state.semana || rowSemana === state.semana) &&
-      (excludeId === 'f-data' || !state.data || row.DATA_COTA === state.data) &&
-      (excludeId === 'f-tipo' || !state.tipo || mainTypeOf(row) === state.tipo) &&
-      (excludeId === 'f-embalagem' || !state.embalagem || row.EMBALAGEM === state.embalagem) &&
-      (excludeId === 'f-produto' || !state.produto || row.PRODUTO === state.produto);
+      (excludeId === 'f-ano' || matchesFilter(rowAno, state.ano)) &&
+      (excludeId === 'f-mes' || matchesMonth(rowMes, state.mes)) &&
+      (excludeId === 'f-semana' || matchesFilter(rowSemana, state.semana)) &&
+      (excludeId === 'f-data' || matchesFilter(row.DATA_COTA, state.data)) &&
+      (excludeId === 'f-tipo' || matchesFilter(mainTypeOf(row), state.tipo)) &&
+      (excludeId === 'f-embalagem' || matchesFilter(row.EMBALAGEM, state.embalagem)) &&
+      (excludeId === 'f-produto' || matchesFilter(row.PRODUTO, state.produto));
   });
 }
 
@@ -1682,11 +1784,6 @@ function updateDynamicFilters(pass = 1) {
     const rawValues = [...new Set(base.map(def.getValue).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', { numeric:true }));
     const values = def.format ? rawValues.map(def.format) : rawValues;
     fillSelect(def.id, values, def.defaultText);
-    const stateKey = def.id.replace('f-', '');
-    if (state[stateKey] && ![...$(def.id).options].some(o => o.value === state[stateKey])) {
-      $(def.id).value = '';
-      changed = true;
-    }
   });
   if (changed && pass < 2) updateDynamicFilters(pass + 1);
 }
@@ -1698,11 +1795,12 @@ function populateFilters() {
 }
 
 function setSelectIfOptionExists(id, value) {
-  const select = $(id);
-  if (!select || !value) return false;
-  const option = [...select.options].find(item => String(Number(item.value)) === String(Number(value)) || item.value === value);
+  const input = $(id);
+  const list = $('dl-' + id);
+  if (!input || !list || !value) return false;
+  const option = [...list.options].find(item => String(Number(item.value)) === String(Number(value)) || item.value === value);
   if (!option) return false;
-  select.value = option.value;
+  input.value = option.value;
   return true;
 }
 
@@ -1799,10 +1897,10 @@ function renderCharts(data) {
 function renderChartProduto(data) {
   const entries = Object.entries(groupSum(data, r => r.PRODUTO)).sort((a, b) => b[1] - a[1]);
   const fullLabels = entries.map(([label]) => label);
-  const labels = fullLabels.map(label => shortenLabel(label, 28));
+  const labels = fullLabels.map(label => shortenLabel(label, 18));
   const values = entries.map(([, value]) => value);
   $('subtitle-produto').textContent = `${entries.length} produto(s) do filtro atual`;
-  sizeChartWrap('wrap-produto', entries.length, 'horizontal');
+  sizeChartWrap('wrap-produto', entries.length, 'vertical');
   if (chartProduto) chartProduto.destroy();
   chartProduto = new Chart($('chart-produto'), {
     type:'bar',
@@ -1817,7 +1915,6 @@ function renderChartProduto(data) {
       }]
     },
     options:{
-      indexAxis:'y',
       responsive:true,
       maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
@@ -1825,24 +1922,24 @@ function renderChartProduto(data) {
         legend:{ display:false },
         tooltip:{ callbacks:{
           title:(items) => fullLabels[items[0]?.dataIndex] || items[0]?.label || '',
-          label:ctx => ` Total: ${fmtTon(ctx.parsed.x)} ton`
+          label:ctx => ` Total: ${fmtTon(ctx.parsed.y)} ton`
         } },
         datalabels:{
           display:(ctx) => shouldShowChartLabel(ctx, entries.length),
           color:'#12213f',
           anchor:'end',
-          align:'right',
-          offset:6,
+          align:'top',
+          offset:4,
           clamp:true,
           clip:false,
           font:{ family:'DM Sans', size:10, weight:'900' },
           formatter:(value) => fmtTonShort(value)
         }
       },
-      layout:{ padding:{ top:8, right:44, bottom:4, left:4 } },
+      layout:{ padding:{ top:22, right:20, bottom:4 } },
       scales:{
-        x:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } },
-        y:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'800' }, autoSkip:false } }
+        x:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'800' }, autoSkip:false, maxRotation:0, minRotation:0 } },
+        y:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
   });
@@ -2182,11 +2279,25 @@ function clearFilters() {
   render();
 }
 
+function clearFilter(id) {
+  const field = $(id);
+  if (!field) return;
+  field.value = '';
+  updateDynamicFilters();
+  render();
+}
+
 ['f-search','f-ano','f-mes','f-semana','f-data','f-tipo','f-embalagem','f-produto'].forEach(id => {
-  $(id).addEventListener(id === 'f-search' ? 'input' : 'change', () => {
+  $(id).addEventListener('input', () => {
     updateDynamicFilters();
     render();
   });
+  if (id !== 'f-search') {
+    $(id).addEventListener('change', () => {
+      updateDynamicFilters();
+      render();
+    });
+  }
 });
 
 function syncFilterLayout() {
