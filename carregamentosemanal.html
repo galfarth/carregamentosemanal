@@ -332,7 +332,7 @@
     margin-bottom:0;
   }
   .filter-panel {
-    overflow:hidden;
+    overflow:visible;
   }
   .filter-panel > summary {
     list-style:none;
@@ -495,6 +495,14 @@
     justify-content:space-between;
     gap:10px;
     text-align:left;
+    outline:none;
+    transition:border-color .18s, box-shadow .18s, background .18s;
+  }
+  .filter-trigger:hover,
+  .filter-trigger:focus-visible {
+    border-color:var(--brand-cyan);
+    box-shadow:0 0 0 4px var(--ring);
+    background:#fff;
   }
   .filter-trigger::after {
     content:'';
@@ -510,16 +518,16 @@
   }
   .filter-menu {
     display:none;
-    position:absolute;
-    left:0;
-    right:0;
-    top:calc(100% + 6px);
-    z-index:12;
+    position:fixed;
+    z-index:80;
+    width:min(320px, calc(100vw - 24px));
+    max-height:320px;
     padding:10px;
     border:1px solid var(--border);
     border-radius:14px;
     background:#fff;
     box-shadow:var(--shadow-card);
+    overflow:hidden;
   }
   .filter-combo.open .filter-menu {
     display:block;
@@ -534,7 +542,7 @@
     font:700 .82rem 'DM Sans', sans-serif;
   }
   .filter-options {
-    max-height:210px;
+    max-height:230px;
     overflow:auto;
     display:flex;
     flex-direction:column;
@@ -554,6 +562,14 @@
   }
   .filter-option:hover {
     background:#eef5fb;
+  }
+  .filter-option span {
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:normal;
+    line-height:1.25;
+    word-break:break-word;
   }
   .filter-option input {
     width:16px;
@@ -1954,6 +1970,7 @@ function updateFilterSelection(id, value, checked) {
   else selected.delete(value);
   setSelectedValues(id, [...selected]);
   updateDynamicFilters();
+  positionFilterMenu(id);
   render();
 }
 
@@ -1979,7 +1996,7 @@ function renderFilterOptions(id, values, defaultText) {
     const clearButton = document.createElement('button');
     clearButton.type = 'button';
     clearButton.className = 'filter-menu-action';
-    clearButton.textContent = 'Limpar selecao';
+    clearButton.textContent = 'Limpar seleção';
     clearButton.addEventListener('click', () => clearFilter(id));
     wrap.appendChild(clearButton);
   }
@@ -1987,7 +2004,7 @@ function renderFilterOptions(id, values, defaultText) {
   if (!items.length) {
     const empty = document.createElement('div');
     empty.className = 'filter-empty-options';
-    empty.textContent = 'Nenhuma opcao';
+    empty.textContent = 'Nenhuma opção';
     wrap.appendChild(empty);
     updateFilterTrigger(id, defaultText);
     return;
@@ -2003,6 +2020,7 @@ function renderFilterOptions(id, values, defaultText) {
     checkbox.addEventListener('change', () => updateFilterSelection(id, item.value, checkbox.checked));
     const span = document.createElement('span');
     span.textContent = item.label;
+    span.title = item.label;
     label.appendChild(checkbox);
     label.appendChild(span);
     wrap.appendChild(label);
@@ -2015,10 +2033,54 @@ function closeFilterMenus(exceptId = '') {
   SELECT_FILTERS.forEach(def => {
     if (def.id === exceptId) return;
     const combo = document.querySelector(`.filter-combo[data-filter="${def.id}"]`);
+    const menu = $(def.id + '-menu');
     const button = $(def.id + '-button');
     combo?.classList.remove('open');
+    if (menu) {
+      menu.style.left = '';
+      menu.style.top = '';
+      menu.style.bottom = '';
+      menu.style.width = '';
+      menu.style.maxHeight = '';
+    }
     button?.setAttribute('aria-expanded', 'false');
   });
+}
+
+function positionFilterMenu(id) {
+  const button = $(id + '-button');
+  const menu = $(id + '-menu');
+  if (!button || !menu) return;
+
+  const rect = button.getBoundingClientRect();
+  const gap = 6;
+  const margin = 12;
+  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+  const width = Math.min(Math.max(rect.width, 260), viewportWidth - margin * 2);
+  const left = Math.min(Math.max(rect.left, margin), viewportWidth - width - margin);
+  const availableBelow = viewportHeight - rect.bottom - gap - margin;
+  const availableAbove = rect.top - gap - margin;
+  const openBelow = availableBelow >= 190 || availableBelow >= availableAbove;
+  const maxHeight = Math.max(150, openBelow ? availableBelow : availableAbove);
+  const options = $(id + '-options');
+
+  menu.style.left = `${left}px`;
+  menu.style.width = `${width}px`;
+  menu.style.maxHeight = `${maxHeight}px`;
+  if (openBelow) {
+    menu.style.top = `${rect.bottom + gap}px`;
+    menu.style.bottom = '';
+  } else {
+    menu.style.top = '';
+    menu.style.bottom = `${viewportHeight - rect.top + gap}px`;
+  }
+  if (options) options.style.maxHeight = `${Math.max(92, maxHeight - 64)}px`;
+}
+
+function positionOpenFilterMenu() {
+  const openCombo = document.querySelector('.filter-combo.open');
+  if (openCombo?.dataset.filter) positionFilterMenu(openCombo.dataset.filter);
 }
 
 function toggleFilterMenu(id) {
@@ -2029,7 +2091,13 @@ function toggleFilterMenu(id) {
   closeFilterMenus(id);
   combo.classList.toggle('open', willOpen);
   button.setAttribute('aria-expanded', String(willOpen));
-  if (willOpen) setTimeout(() => $(id + '-search')?.focus(), 30);
+  if (willOpen) {
+    positionFilterMenu(id);
+    setTimeout(() => {
+      positionFilterMenu(id);
+      $(id + '-search')?.focus();
+    }, 30);
+  }
 }
 
 function getFilterState() {
@@ -2370,6 +2438,7 @@ function renderChartDia(data) {
     });
     labels = entries.map(([label]) => label);
     values = entries.map(([, value]) => value);
+    type = entries.length <= 1 ? 'bar' : 'line';
     subtitle = 'Visão diária do período filtrado';
     entries.forEach(([label]) => {
       const row = data.find(r => r.DATA_COTA === label);
@@ -2608,7 +2677,10 @@ $('f-search').addEventListener('input', () => {
 });
 
 SELECT_FILTERS.forEach(def => {
-  $(def.id + '-search')?.addEventListener('input', () => updateDynamicFilters());
+  $(def.id + '-search')?.addEventListener('input', () => {
+    updateDynamicFilters();
+    positionFilterMenu(def.id);
+  });
   $(def.id + '-button')?.addEventListener('keydown', event => {
     if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -2626,6 +2698,7 @@ function syncFilterLayout() {
   const panel = $('filter-panel');
   if (!layout || !panel) return;
   layout.classList.toggle('filters-collapsed', !panel.open);
+  if (!panel.open) closeFilterMenus();
   document.body.classList.remove('filter-open');
   setTimeout(() => {
     [chartProduto, chartPack, chartTipo, chartDia].forEach(chart => chart?.resize());
@@ -2638,6 +2711,7 @@ $('filter-scrim')?.addEventListener('click', () => {
   if (panel) panel.open = false;
 });
 window.addEventListener('resize', syncFilterLayout);
+window.addEventListener('scroll', positionOpenFilterMenu, true);
 window.addEventListener('keydown', event => {
   if (event.key === 'Escape') {
     closeFilterMenus();
