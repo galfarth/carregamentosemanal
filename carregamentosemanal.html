@@ -1436,7 +1436,7 @@
       <section class="whatsapp-bar panel">
         <div>
           <div class="whatsapp-title">Enviar programação via WhatsApp</div>
-          <div class="card-subtitle">Envia somente quando todos os filtros estiverem marcados.</div>
+          <div class="card-subtitle">Usa a seleção atual, com a semana vigente marcada automaticamente.</div>
         </div>
         <div class="whatsapp-actions">
           <button class="btn btn-whatsapp" type="button" onclick="sendWhatsApp('geral')">WhatsApp · Geral</button>
@@ -2244,6 +2244,7 @@ function updateDynamicFilters(pass = 1) {
 
 function populateFilters() {
   updateDynamicFilters();
+  applyCurrentWeekDefault();
 }
 
 function setSelectIfOptionExists(id, value) {
@@ -2256,21 +2257,26 @@ function setSelectIfOptionExists(id, value) {
   return true;
 }
 
-function applyCurrentWeekDefault() {
+function applyCurrentWeekDefault(force = false) {
   const state = getFilterState();
-  if (state.search || SELECT_FILTERS.some(def => state[def.id.replace('f-', '')]?.length)) return;
-  const selectedYear = setSelectIfOptionExists('f-ano', currentYearValue());
-  if (selectedYear) updateDynamicFilters();
-  if (setSelectIfOptionExists('f-semana', currentWeekValue())) updateDynamicFilters();
+  const needsYear = force || !state.ano.length;
+  const needsWeek = force || !state.semana.length;
+  if (!needsYear && !needsWeek) return;
+
+  let changed = false;
+  if (needsYear) changed = setSelectIfOptionExists('f-ano', currentYearValue()) || changed;
+  if (changed) updateDynamicFilters();
+  if (needsWeek) changed = setSelectIfOptionExists('f-semana', currentWeekValue()) || changed;
+  if (changed) updateDynamicFilters();
 }
 
-function hasCompleteFilterSelection(state = getFilterState()) {
-  return SELECT_FILTERS.every(def => state[def.id.replace('f-', '')]?.length);
+function hasAnyFilterSelection(state = getFilterState()) {
+  return SELECT_FILTERS.some(def => state[def.id.replace('f-', '')]?.length);
 }
 
 function filtered() {
   const state = getFilterState();
-  if (!hasCompleteFilterSelection(state)) return [];
+  if (!hasAnyFilterSelection(state)) return [];
   return applyFilters(allData, state);
 }
 
@@ -2336,9 +2342,9 @@ function renderSummary(data) {
   const topPacks = topEntries(groupSum(data, r => r.EMBALAGEM), 3);
   const status = data.length
     ? `${data.length} registro(s) no período ${periodDescription()}`
-    : hasCompleteFilterSelection()
+    : hasAnyFilterSelection()
       ? 'Nenhum registro encontrado'
-      : 'Vazio: marque ao menos uma opção em todos os filtros para carregar os dados';
+      : 'Vazio: marque ao menos um filtro para carregar os dados';
 
   $('summary-weeks').textContent = weeks.length ? `${weeks.length} semana(s)` : '—';
   $('summary-dates').textContent = `${dates.length} data(s)`;
@@ -2726,9 +2732,9 @@ function sendWhatsApp(mode = 'geral') {
 function renderTable(data) {
   const tbody = $('table-body');
   if (!data.length) {
-    const message = hasCompleteFilterSelection()
+    const message = hasAnyFilterSelection()
       ? 'Nenhum registro encontrado'
-      : 'Vazio: marque ao menos uma opção em todos os filtros';
+      : 'Vazio: marque ao menos um filtro';
     tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">🔎</div><div>${message}</div></div></td></tr>`;
     return;
   }
@@ -2774,6 +2780,7 @@ function clearFilters() {
     setSelectedValues(def.id, []);
   });
   updateDynamicFilters();
+  applyCurrentWeekDefault(true);
   render();
 }
 
