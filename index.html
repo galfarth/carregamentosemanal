@@ -724,6 +724,12 @@
     min-width:0;
     overflow:auto;
     scrollbar-width:thin;
+    scrollbar-color:#b8c7d9 transparent;
+    scroll-behavior:smooth;
+  }
+  .chart-wrap-wide {
+    height:340px;
+    padding-bottom:24px;
   }
   .chart-canvas {
     position:relative;
@@ -1202,7 +1208,7 @@
           <div class="card-subtitle" id="subtitle-produto">Todos os produtos do filtro atual</div>
         </div>
       </div>
-      <div class="chart-wrap"><div class="chart-canvas" id="wrap-produto"><canvas id="chart-produto"></canvas></div></div>
+      <div class="chart-wrap chart-wrap-wide"><div class="chart-canvas" id="wrap-produto"><canvas id="chart-produto"></canvas></div></div>
     </article>
     <article class="panel panel-wide">
       <div class="card-header">
@@ -1303,7 +1309,7 @@ function sizeChartWrap(id, count, orientation = 'vertical') {
     wrap.style.width = '100%';
   } else {
     wrap.style.height = '100%';
-    wrap.style.width = Math.max(100, safeCount * 76) + 'px';
+    wrap.style.width = Math.max(100, safeCount * 92) + 'px';
   }
 }
 
@@ -1804,10 +1810,10 @@ function renderCharts(data) {
 function renderChartProduto(data) {
   const entries = Object.entries(groupSum(data, r => r.PRODUTO)).sort((a, b) => b[1] - a[1]);
   const fullLabels = entries.map(([label]) => label);
-  const labels = fullLabels;
+  const labels = fullLabels.map(label => shortenLabel(label, 16));
   const values = entries.map(([, value]) => value);
   $('subtitle-produto').textContent = `${entries.length} produto(s) do filtro atual`;
-  sizeChartWrap('wrap-produto', entries.length, 'horizontal');
+  sizeChartWrap('wrap-produto', entries.length, 'vertical');
   if (chartProduto) chartProduto.destroy();
   chartProduto = new Chart($('chart-produto'), {
     type:'bar',
@@ -1816,13 +1822,12 @@ function renderChartProduto(data) {
       datasets:[{
         label:'Toneladas',
         data:values,
-        backgroundColor:'#3b82f6',
+        backgroundColor:['#253887','#17a8c9','#10b981','#f59e0b','#7c3aed','#0ea5e9','#64748b','#14b8a6'],
         borderRadius:10,
         borderSkipped:false
       }]
     },
     options:{
-      indexAxis:'y',
       responsive:true,
       maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
@@ -1830,24 +1835,24 @@ function renderChartProduto(data) {
         legend:{ display:false },
         tooltip:{ callbacks:{
           title:(items) => fullLabels[items[0]?.dataIndex] || items[0]?.label || '',
-          label:ctx => ` Total: ${fmtTon(ctx.parsed.x)} ton`
+          label:ctx => ` Total: ${fmtTon(ctx.parsed.y)} ton`
         } },
         datalabels:{
-          display:(ctx) => Number(ctx.dataset.data[ctx.dataIndex] || 0) > 0,
+          display:(ctx) => shouldShowChartLabel(ctx, entries.length),
           color:'#12213f',
           anchor:'end',
-          align:'right',
+          align:'top',
           offset:4,
           clamp:true,
           clip:false,
           font:{ family:'DM Sans', size:10, weight:'900' },
-          formatter:(value) => fmtTon(value)
+          formatter:(value) => fmtTonShort(value)
         }
       },
-      layout:{ padding:{ right:78 } },
+      layout:{ padding:{ top:22, right:20, bottom:4 } },
       scales:{
-        y:{ stacked:false, grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, autoSkip:false } },
-        x:{ stacked:false, beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
+        x:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'800' }, autoSkip:false, maxRotation:38, minRotation:30 } },
+        y:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
   });
