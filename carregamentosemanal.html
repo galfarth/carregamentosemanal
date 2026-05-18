@@ -425,18 +425,13 @@
     grid-column:span 2;
   }
   .control { display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .filter-input-row { display:none; }
   .control label {
     font-size:.66rem;
     font-weight:900;
     letter-spacing:.10em;
     text-transform:uppercase;
     color:var(--muted);
-  }
-  .filter-input-row {
-    position:relative;
-    display:flex;
-    align-items:center;
-    gap:8px;
   }
   .control input, .control select {
     width:100%;
@@ -481,6 +476,113 @@
     background:#d9f3f8;
     color:var(--brand-navy);
     border-color:var(--brand-cyan);
+  }
+  .filter-combo {
+    position:relative;
+  }
+  .filter-trigger {
+    width:100%;
+    min-height:42px;
+    border:1.5px solid var(--border);
+    border-radius:14px;
+    padding:0 12px;
+    background:#fbfdff;
+    color:var(--text);
+    font:800 .84rem 'DM Sans', sans-serif;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    text-align:left;
+  }
+  .filter-trigger::after {
+    content:'';
+    width:12px;
+    height:8px;
+    flex:0 0 12px;
+    background:no-repeat center/12px 8px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+  .filter-trigger-text {
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .filter-menu {
+    display:none;
+    position:absolute;
+    left:0;
+    right:0;
+    top:calc(100% + 6px);
+    z-index:12;
+    padding:10px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:#fff;
+    box-shadow:var(--shadow-card);
+  }
+  .filter-combo.open .filter-menu {
+    display:block;
+  }
+  .filter-menu-search {
+    width:100%;
+    height:36px;
+    margin-bottom:8px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:0 10px;
+    font:700 .82rem 'DM Sans', sans-serif;
+  }
+  .filter-options {
+    max-height:210px;
+    overflow:auto;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .filter-option {
+    min-height:32px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 8px;
+    border-radius:10px;
+    color:var(--text);
+    font-size:.82rem;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .filter-option:hover {
+    background:#eef5fb;
+  }
+  .filter-option input {
+    width:16px;
+    height:16px;
+    flex:0 0 16px;
+    padding:0;
+    border-radius:4px;
+    appearance:auto;
+    accent-color:var(--brand-navy);
+  }
+  .filter-menu-action {
+    width:100%;
+    min-height:30px;
+    margin-bottom:6px;
+    border:none;
+    border-radius:10px;
+    background:#eef5fb;
+    color:var(--brand-navy);
+    font:800 .76rem 'DM Sans', sans-serif;
+    cursor:pointer;
+  }
+  .filter-menu-action:hover {
+    background:#d9f3f8;
+  }
+  .filter-empty-options {
+    padding:10px 8px;
+    color:var(--muted);
+    font-size:.78rem;
+    font-weight:700;
   }
   .btn {
     height:42px;
@@ -996,10 +1098,12 @@
     .chart-wrap { height:290px; }
   }
   @media (min-width:1121px) {
-    .layout-grid,
-    .layout-grid.filters-collapsed {
+    .layout-grid {
       grid-template-columns:330px minmax(0, 1fr);
       align-items:start;
+    }
+    .layout-grid.filters-collapsed {
+      grid-template-columns:64px minmax(0, 1fr);
     }
     .sidebar {
       grid-column:1;
@@ -1024,10 +1128,38 @@
       grid-column:span 1;
     }
     .layout-grid.filters-collapsed .sidebar {
-      gap:18px;
+      width:64px;
+      overflow:visible;
+      gap:0;
     }
     .layout-grid.filters-collapsed .whatsapp-bar {
-      display:flex;
+      display:none;
+    }
+    .layout-grid.filters-collapsed .toolbar {
+      padding:18px;
+      width:64px;
+    }
+    .layout-grid.filters-collapsed .filter-panel > summary {
+      min-height:180px;
+      margin:-18px;
+      padding:16px 12px;
+      flex-direction:column;
+      justify-content:center;
+    }
+    .layout-grid.filters-collapsed .filter-panel > summary > span:first-child {
+      flex-direction:column;
+      justify-content:center;
+    }
+    .layout-grid.filters-collapsed .filter-title {
+      writing-mode:vertical-rl;
+      transform:rotate(180deg);
+      font-size:.8rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .layout-grid.filters-collapsed .filter-title::before,
+    .layout-grid.filters-collapsed .filter-panel .card-subtitle {
+      display:none;
     }
     .layout-grid.filters-collapsed .summary-grid,
     .layout-grid.filters-collapsed .kpi-grid {
@@ -1105,6 +1237,15 @@
             <button class="filter-clear" type="button" onclick="clearFilter('f-ano')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de ano">×</button>
           </div>
           <datalist id="dl-f-ano"></datalist>
+          <div class="filter-combo" data-filter="f-ano">
+            <button class="filter-trigger" id="f-ano-button" type="button" onclick="toggleFilterMenu('f-ano')" aria-expanded="false">
+              <span class="filter-trigger-text">Todos</span>
+            </button>
+            <div class="filter-menu" id="f-ano-menu">
+              <input class="filter-menu-search" id="f-ano-search" type="search" placeholder="Digite para filtrar">
+              <div class="filter-options" id="f-ano-options"></div>
+            </div>
+          </div>
         </div>
         <div class="control">
           <label for="f-mes">Mês</label>
@@ -1113,6 +1254,15 @@
             <button class="filter-clear" type="button" onclick="clearFilter('f-mes')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de mÃªs">×</button>
           </div>
           <datalist id="dl-f-mes"></datalist>
+          <div class="filter-combo" data-filter="f-mes">
+            <button class="filter-trigger" id="f-mes-button" type="button" onclick="toggleFilterMenu('f-mes')" aria-expanded="false">
+              <span class="filter-trigger-text">Todos</span>
+            </button>
+            <div class="filter-menu" id="f-mes-menu">
+              <input class="filter-menu-search" id="f-mes-search" type="search" placeholder="Digite para filtrar">
+              <div class="filter-options" id="f-mes-options"></div>
+            </div>
+          </div>
         </div>
         <div class="control">
           <label for="f-semana">Semana</label>
@@ -1121,6 +1271,15 @@
             <button class="filter-clear" type="button" onclick="clearFilter('f-semana')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de semana">×</button>
           </div>
           <datalist id="dl-f-semana"></datalist>
+          <div class="filter-combo" data-filter="f-semana">
+            <button class="filter-trigger" id="f-semana-button" type="button" onclick="toggleFilterMenu('f-semana')" aria-expanded="false">
+              <span class="filter-trigger-text">Todas</span>
+            </button>
+            <div class="filter-menu" id="f-semana-menu">
+              <input class="filter-menu-search" id="f-semana-search" type="search" placeholder="Digite para filtrar">
+              <div class="filter-options" id="f-semana-options"></div>
+            </div>
+          </div>
         </div>
         <div class="control">
           <label for="f-data">Data</label>
@@ -1129,6 +1288,15 @@
             <button class="filter-clear" type="button" onclick="clearFilter('f-data')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de data">×</button>
           </div>
           <datalist id="dl-f-data"></datalist>
+          <div class="filter-combo" data-filter="f-data">
+            <button class="filter-trigger" id="f-data-button" type="button" onclick="toggleFilterMenu('f-data')" aria-expanded="false">
+              <span class="filter-trigger-text">Todas</span>
+            </button>
+            <div class="filter-menu" id="f-data-menu">
+              <input class="filter-menu-search" id="f-data-search" type="search" placeholder="Digite para filtrar">
+              <div class="filter-options" id="f-data-options"></div>
+            </div>
+          </div>
         </div>
         <div class="control">
           <label for="f-tipo">Tipo</label>
@@ -1137,6 +1305,15 @@
             <button class="filter-clear" type="button" onclick="clearFilter('f-tipo')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de tipo">×</button>
           </div>
           <datalist id="dl-f-tipo"></datalist>
+          <div class="filter-combo" data-filter="f-tipo">
+            <button class="filter-trigger" id="f-tipo-button" type="button" onclick="toggleFilterMenu('f-tipo')" aria-expanded="false">
+              <span class="filter-trigger-text">Todos</span>
+            </button>
+            <div class="filter-menu" id="f-tipo-menu">
+              <input class="filter-menu-search" id="f-tipo-search" type="search" placeholder="Digite para filtrar">
+              <div class="filter-options" id="f-tipo-options"></div>
+            </div>
+          </div>
         </div>
         <div class="control">
           <label for="f-embalagem">Embalagem</label>
@@ -1145,6 +1322,15 @@
             <button class="filter-clear" type="button" onclick="clearFilter('f-embalagem')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de embalagem">×</button>
           </div>
           <datalist id="dl-f-embalagem"></datalist>
+          <div class="filter-combo" data-filter="f-embalagem">
+            <button class="filter-trigger" id="f-embalagem-button" type="button" onclick="toggleFilterMenu('f-embalagem')" aria-expanded="false">
+              <span class="filter-trigger-text">Todas</span>
+            </button>
+            <div class="filter-menu" id="f-embalagem-menu">
+              <input class="filter-menu-search" id="f-embalagem-search" type="search" placeholder="Digite para filtrar">
+              <div class="filter-options" id="f-embalagem-options"></div>
+            </div>
+          </div>
         </div>
         <div class="control">
           <label for="f-produto">Produto</label>
@@ -1153,6 +1339,15 @@
             <button class="filter-clear" type="button" onclick="clearFilter('f-produto')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de produto">×</button>
           </div>
           <datalist id="dl-f-produto"></datalist>
+          <div class="filter-combo" data-filter="f-produto">
+            <button class="filter-trigger" id="f-produto-button" type="button" onclick="toggleFilterMenu('f-produto')" aria-expanded="false">
+              <span class="filter-trigger-text">Todos</span>
+            </button>
+            <div class="filter-menu" id="f-produto-menu">
+              <input class="filter-menu-search" id="f-produto-search" type="search" placeholder="Digite para filtrar">
+              <div class="filter-options" id="f-produto-options"></div>
+            </div>
+          </div>
         </div>
         <div class="toolbar-actions">
           <button class="btn btn-ghost" id="btn-clear" type="button" onclick="clearFilters()">Limpar</button>
@@ -1471,13 +1666,13 @@ function aggregateTopEntries(entries, limit = 6, otherLabel = 'Outros') {
 }
 
 function periodDescription() {
-  const ano = $('f-ano')?.value || '';
-  const mes = $('f-mes')?.value || '';
-  const semana = $('f-semana')?.value || '';
+  const ano = getSelectedValues('f-ano');
+  const mes = getSelectedValues('f-mes');
+  const semana = getSelectedValues('f-semana');
   const parts = [];
-  if (ano) parts.push(ano);
-  if (mes) parts.push(monthName(mes));
-  if (semana) parts.push('Semana ' + semana);
+  if (ano.length) parts.push(compactList(ano, 2));
+  if (mes.length) parts.push(compactList(mes.map(monthName), 2));
+  if (semana.length) parts.push(compactList(semana.map(value => 'Semana ' + value), 2));
   return parts.length ? parts.join(' · ') : 'Histórico completo';
 }
 
@@ -1707,6 +1902,7 @@ function fillSelect(id, values, defaultText) {
     }
     list.appendChild(option);
   });
+  renderFilterOptions(id, values, defaultText);
 }
 
 const SELECT_FILTERS = [
@@ -1719,35 +1915,153 @@ const SELECT_FILTERS = [
   { id:'f-produto', defaultText:'Todos', getValue:r => r.PRODUTO }
 ];
 
+const FILTER_DELIMITER = '||';
+
+function getFilterDef(id) {
+  return SELECT_FILTERS.find(def => def.id === id);
+}
+
+function getSelectedValues(id) {
+  const field = $(id);
+  if (!field || !field.value) return [];
+  return field.value.split(FILTER_DELIMITER).filter(Boolean);
+}
+
+function setSelectedValues(id, values) {
+  const field = $(id);
+  if (!field) return;
+  field.value = [...new Set(values.filter(Boolean))].join(FILTER_DELIMITER);
+  updateFilterTrigger(id);
+}
+
+function filterLabel(id, value) {
+  if (id === 'f-mes') return monthName(value);
+  return value || '';
+}
+
+function updateFilterTrigger(id, defaultText) {
+  const button = $(id + '-button');
+  if (!button) return;
+  const text = button.querySelector('.filter-trigger-text');
+  const def = getFilterDef(id);
+  const selected = getSelectedValues(id).map(value => filterLabel(id, value));
+  if (text) text.textContent = selected.length ? compactList(selected, 2) : (defaultText || def?.defaultText || 'Todos');
+}
+
+function updateFilterSelection(id, value, checked) {
+  const selected = new Set(getSelectedValues(id));
+  if (checked) selected.add(value);
+  else selected.delete(value);
+  setSelectedValues(id, [...selected]);
+  updateDynamicFilters();
+  render();
+}
+
+function renderFilterOptions(id, values, defaultText) {
+  const wrap = $(id + '-options');
+  if (!wrap) return;
+
+  const selected = new Set(getSelectedValues(id));
+  const search = normalize($(id + '-search')?.value || '');
+  const normalizedItems = values.map(item => {
+    if (typeof item === 'object' && item !== null) return { value:String(item.value || ''), label:String(item.label || item.value || '') };
+    return { value:String(item || ''), label:String(item || '') };
+  }).filter(item => item.value);
+
+  selected.forEach(value => {
+    if (!normalizedItems.some(item => item.value === value)) normalizedItems.unshift({ value, label:filterLabel(id, value) });
+  });
+
+  const items = normalizedItems.filter(item => !search || normalize(item.label).includes(search) || normalize(item.value).includes(search));
+  wrap.innerHTML = '';
+
+  if (selected.size) {
+    const clearButton = document.createElement('button');
+    clearButton.type = 'button';
+    clearButton.className = 'filter-menu-action';
+    clearButton.textContent = 'Limpar selecao';
+    clearButton.addEventListener('click', () => clearFilter(id));
+    wrap.appendChild(clearButton);
+  }
+
+  if (!items.length) {
+    const empty = document.createElement('div');
+    empty.className = 'filter-empty-options';
+    empty.textContent = 'Nenhuma opcao';
+    wrap.appendChild(empty);
+    updateFilterTrigger(id, defaultText);
+    return;
+  }
+
+  items.forEach(item => {
+    const label = document.createElement('label');
+    label.className = 'filter-option';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.value = item.value;
+    checkbox.checked = selected.has(item.value);
+    checkbox.addEventListener('change', () => updateFilterSelection(id, item.value, checkbox.checked));
+    const span = document.createElement('span');
+    span.textContent = item.label;
+    label.appendChild(checkbox);
+    label.appendChild(span);
+    wrap.appendChild(label);
+  });
+
+  updateFilterTrigger(id, defaultText);
+}
+
+function closeFilterMenus(exceptId = '') {
+  SELECT_FILTERS.forEach(def => {
+    if (def.id === exceptId) return;
+    const combo = document.querySelector(`.filter-combo[data-filter="${def.id}"]`);
+    const button = $(def.id + '-button');
+    combo?.classList.remove('open');
+    button?.setAttribute('aria-expanded', 'false');
+  });
+}
+
+function toggleFilterMenu(id) {
+  const combo = document.querySelector(`.filter-combo[data-filter="${id}"]`);
+  const button = $(id + '-button');
+  if (!combo || !button) return;
+  const willOpen = !combo.classList.contains('open');
+  closeFilterMenus(id);
+  combo.classList.toggle('open', willOpen);
+  button.setAttribute('aria-expanded', String(willOpen));
+  if (willOpen) setTimeout(() => $(id + '-search')?.focus(), 30);
+}
+
 function getFilterState() {
   return {
     search: $('f-search').value,
-    ano: $('f-ano').value,
-    mes: $('f-mes').value,
-    semana: $('f-semana').value,
-    data: $('f-data').value,
-    tipo: $('f-tipo').value,
-    embalagem: $('f-embalagem').value,
-    produto: $('f-produto').value
+    ano: getSelectedValues('f-ano'),
+    mes: getSelectedValues('f-mes'),
+    semana: getSelectedValues('f-semana'),
+    data: getSelectedValues('f-data'),
+    tipo: getSelectedValues('f-tipo'),
+    embalagem: getSelectedValues('f-embalagem'),
+    produto: getSelectedValues('f-produto')
   };
 }
 
 function hasActiveSelection() {
   const state = getFilterState();
-  return Object.values(state).some(Boolean);
+  return Boolean(state.search) || SELECT_FILTERS.some(def => state[def.id.replace('f-', '')]?.length);
 }
 
 function applyFilters(dataset, state = getFilterState(), excludeId = '') {
   const term = normalize(state.search || '');
   const matchesFilter = (actual, expected) => {
-    if (!expected) return true;
+    const selected = Array.isArray(expected) ? expected : (expected ? [expected] : []);
+    if (!selected.length) return true;
     const actualText = String(actual || '');
-    const expectedText = String(expected || '');
-    return actualText === expectedText || normalize(actualText).includes(normalize(expectedText));
+    return selected.some(value => actualText === String(value || '') || normalize(actualText).includes(normalize(value)));
   };
   const matchesMonth = (actual, expected) => {
-    if (!expected) return true;
-    return matchesFilter(actual, expected) || matchesFilter(monthName(actual), expected);
+    const selected = Array.isArray(expected) ? expected : (expected ? [expected] : []);
+    if (!selected.length) return true;
+    return selected.some(value => matchesFilter(actual, [value]) || matchesFilter(monthName(actual), [value]));
   };
   return dataset.filter(row => {
     const rowAno = yearOf(row);
@@ -1778,14 +2092,12 @@ function applyFilters(dataset, state = getFilterState(), excludeId = '') {
 
 function updateDynamicFilters(pass = 1) {
   const state = getFilterState();
-  let changed = false;
   SELECT_FILTERS.forEach(def => {
     const base = applyFilters(allData, state, def.id);
     const rawValues = [...new Set(base.map(def.getValue).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', { numeric:true }));
     const values = def.format ? rawValues.map(def.format) : rawValues;
     fillSelect(def.id, values, def.defaultText);
   });
-  if (changed && pass < 2) updateDynamicFilters(pass + 1);
 }
 
 
@@ -1800,13 +2112,13 @@ function setSelectIfOptionExists(id, value) {
   if (!input || !list || !value) return false;
   const option = [...list.options].find(item => String(Number(item.value)) === String(Number(value)) || item.value === value);
   if (!option) return false;
-  input.value = option.value;
+  setSelectedValues(id, [option.value]);
   return true;
 }
 
 function applyCurrentWeekDefault() {
   const state = getFilterState();
-  if (state.ano || state.semana || state.data || state.mes || state.produto || state.embalagem || state.tipo || state.search) return;
+  if (state.search || SELECT_FILTERS.some(def => state[def.id.replace('f-', '')]?.length)) return;
   const selectedYear = setSelectIfOptionExists('f-ano', currentYearValue());
   if (selectedYear) updateDynamicFilters();
   if (setSelectIfOptionExists('f-semana', currentWeekValue())) updateDynamicFilters();
@@ -1897,10 +2209,10 @@ function renderCharts(data) {
 function renderChartProduto(data) {
   const entries = Object.entries(groupSum(data, r => r.PRODUTO)).sort((a, b) => b[1] - a[1]);
   const fullLabels = entries.map(([label]) => label);
-  const labels = fullLabels.map(label => shortenLabel(label, 18));
+  const labels = fullLabels.map(label => shortenLabel(label, 28));
   const values = entries.map(([, value]) => value);
   $('subtitle-produto').textContent = `${entries.length} produto(s) do filtro atual`;
-  sizeChartWrap('wrap-produto', entries.length, 'vertical');
+  sizeChartWrap('wrap-produto', entries.length, 'horizontal');
   if (chartProduto) chartProduto.destroy();
   chartProduto = new Chart($('chart-produto'), {
     type:'bar',
@@ -1915,6 +2227,7 @@ function renderChartProduto(data) {
       }]
     },
     options:{
+      indexAxis:'y',
       responsive:true,
       maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
@@ -1922,13 +2235,13 @@ function renderChartProduto(data) {
         legend:{ display:false },
         tooltip:{ callbacks:{
           title:(items) => fullLabels[items[0]?.dataIndex] || items[0]?.label || '',
-          label:ctx => ` Total: ${fmtTon(ctx.parsed.y)} ton`
+          label:ctx => ` Total: ${fmtTon(ctx.parsed.x)} ton`
         } },
         datalabels:{
           display:(ctx) => shouldShowChartLabel(ctx, entries.length),
           color:'#12213f',
           anchor:'end',
-          align:'top',
+          align:'right',
           offset:4,
           clamp:true,
           clip:false,
@@ -1936,10 +2249,10 @@ function renderChartProduto(data) {
           formatter:(value) => fmtTonShort(value)
         }
       },
-      layout:{ padding:{ top:22, right:20, bottom:4 } },
+      layout:{ padding:{ top:8, right:78, bottom:4 } },
       scales:{
-        x:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'800' }, autoSkip:false, maxRotation:0, minRotation:0 } },
-        y:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
+        y:{ grid:{ display:false }, ticks:{ color:'#475569', font:{ family:'DM Sans', size:11, weight:'800' }, autoSkip:false } },
+        x:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
   });
@@ -2040,8 +2353,8 @@ function renderChartTipo(data) {
 }
 
 function renderChartDia(data) {
-  const anoSelecionado = $('f-ano').value;
-  const mesSelecionado = $('f-mes').value;
+  const anoSelecionado = getSelectedValues('f-ano');
+  const mesSelecionado = getSelectedValues('f-mes');
   const uniqueDates = uniqueLocal(data, r => r.DATA_COTA);
   let labels = [];
   let values = [];
@@ -2049,7 +2362,7 @@ function renderChartDia(data) {
   let subtitle = 'Evolução temporal ajustada automaticamente para histórico';
   let titleLookup = {};
 
-  if ((anoSelecionado && mesSelecionado) || uniqueDates.length <= 31) {
+  if ((anoSelecionado.length && mesSelecionado.length) || uniqueDates.length <= 31) {
     const entries = Object.entries(groupSum(data, r => r.DATA_COTA)).sort((a, b) => {
       const da = parseDateBR(a[0]);
       const db = parseDateBR(b[0]);
@@ -2062,7 +2375,7 @@ function renderChartDia(data) {
       const row = data.find(r => r.DATA_COTA === label);
       titleLookup[label] = row ? `${label} · Semana ${weekOf(row)}` : label;
     });
-  } else if (anoSelecionado) {
+  } else if (anoSelecionado.length === 1) {
     const grouped = {};
     data.forEach(row => {
       const date = parseDateBR(row.DATA_COTA);
@@ -2073,8 +2386,8 @@ function renderChartDia(data) {
     const entries = Object.entries(grouped).sort((a, b) => Number(a[0]) - Number(b[0]));
     labels = entries.map(([m]) => monthName(m).slice(0,3));
     values = entries.map(([, value]) => value);
-    subtitle = `Visão mensal de ${anoSelecionado}`;
-    entries.forEach(([m]) => titleLookup[monthName(m).slice(0,3)] = `${monthName(m)}/${anoSelecionado}`);
+    subtitle = `Visão mensal de ${anoSelecionado[0]}`;
+    entries.forEach(([m]) => titleLookup[monthName(m).slice(0,3)] = `${monthName(m)}/${anoSelecionado[0]}`);
     type = 'bar';
   } else {
     const grouped = {};
@@ -2273,31 +2586,39 @@ function escapeHTML(value) {
 }
 
 function clearFilters() {
-  ['f-search','f-ano','f-mes','f-semana','f-data','f-tipo','f-embalagem','f-produto'].forEach(id => $(id).value = '');
+  $('f-search').value = '';
+  SELECT_FILTERS.forEach(def => {
+    const search = $(def.id + '-search');
+    if (search) search.value = '';
+    setSelectedValues(def.id, []);
+  });
   updateDynamicFilters();
-  applyCurrentWeekDefault();
   render();
 }
 
 function clearFilter(id) {
-  const field = $(id);
-  if (!field) return;
-  field.value = '';
+  setSelectedValues(id, []);
   updateDynamicFilters();
   render();
 }
 
-['f-search','f-ano','f-mes','f-semana','f-data','f-tipo','f-embalagem','f-produto'].forEach(id => {
-  $(id).addEventListener('input', () => {
-    updateDynamicFilters();
-    render();
+$('f-search').addEventListener('input', () => {
+  updateDynamicFilters();
+  render();
+});
+
+SELECT_FILTERS.forEach(def => {
+  $(def.id + '-search')?.addEventListener('input', () => updateDynamicFilters());
+  $(def.id + '-button')?.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleFilterMenu(def.id);
+    }
   });
-  if (id !== 'f-search') {
-    $(id).addEventListener('change', () => {
-      updateDynamicFilters();
-      render();
-    });
-  }
+});
+
+document.addEventListener('click', event => {
+  if (!event.target.closest('.filter-combo')) closeFilterMenus();
 });
 
 function syncFilterLayout() {
@@ -2318,7 +2639,10 @@ $('filter-scrim')?.addEventListener('click', () => {
 });
 window.addEventListener('resize', syncFilterLayout);
 window.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && $('filter-panel')) $('filter-panel').open = false;
+  if (event.key === 'Escape') {
+    closeFilterMenus();
+    if ($('filter-panel')) $('filter-panel').open = false;
+  }
 });
 syncFilterLayout();
 
