@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Programação de Carregamentos – Eleva Química</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23253887'/%3E%3Cpath d='M12 16h31v9H23v7h17v8H23v8h22v9H12z' fill='%23fff'/%3E%3Cpath d='M44 16h8v33l-8 8z' fill='%2317a8c9'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1982,6 +1983,7 @@ const SELECT_FILTERS = [
   { id:'f-produto', defaultText:'Todos', getValue:r => r.PRODUTO }
 ];
 
+const CURRENT_WEEK_DETAIL_FILTERS = ['f-mes', 'f-data', 'f-tipo', 'f-embalagem', 'f-produto'];
 const FILTER_DELIMITER = '||';
 
 function getFilterDef(id) {
@@ -2257,6 +2259,29 @@ function setSelectIfOptionExists(id, value) {
   return true;
 }
 
+function availableFilterValues(id) {
+  const list = $('dl-' + id);
+  if (!list) return [];
+  return [...new Set([...list.options].map(option => option.value).filter(Boolean))];
+}
+
+function sameSelection(current, next) {
+  if (current.length !== next.length) return false;
+  const selected = new Set(current);
+  return next.every(value => selected.has(value));
+}
+
+function selectAllAvailableValues(ids) {
+  let changed = false;
+  ids.forEach(id => {
+    const values = availableFilterValues(id);
+    if (!values.length || sameSelection(getSelectedValues(id), values)) return;
+    setSelectedValues(id, values);
+    changed = true;
+  });
+  return changed;
+}
+
 function applyCurrentWeekDefault(force = false) {
   const state = getFilterState();
   const needsYear = force || !state.ano.length;
@@ -2268,6 +2293,14 @@ function applyCurrentWeekDefault(force = false) {
   if (changed) updateDynamicFilters();
   if (needsWeek) changed = setSelectIfOptionExists('f-semana', currentWeekValue()) || changed;
   if (changed) updateDynamicFilters();
+
+  const updated = getFilterState();
+  const shouldSelectWeekDetails = updated.ano.length && updated.semana.length && (
+    force || CURRENT_WEEK_DETAIL_FILTERS.every(id => !updated[id.replace('f-', '')]?.length)
+  );
+  if (shouldSelectWeekDetails && selectAllAvailableValues(CURRENT_WEEK_DETAIL_FILTERS)) {
+    updateDynamicFilters();
+  }
 }
 
 function hasAnyFilterSelection(state = getFilterState()) {
