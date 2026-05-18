@@ -504,6 +504,10 @@
     box-shadow:0 0 0 4px var(--ring);
     background:#fff;
   }
+  .filter-trigger.is-empty {
+    color:var(--muted);
+    background:#f8fbff;
+  }
   .filter-trigger::after {
     content:'';
     width:12px;
@@ -581,9 +585,8 @@
     accent-color:var(--brand-navy);
   }
   .filter-menu-action {
-    width:100%;
+    flex:1 1 120px;
     min-height:30px;
-    margin-bottom:6px;
     border:none;
     border-radius:10px;
     background:#eef5fb;
@@ -593,6 +596,24 @@
   }
   .filter-menu-action:hover {
     background:#d9f3f8;
+  }
+  .filter-menu-action:disabled {
+    cursor:not-allowed;
+    opacity:.48;
+    background:#f1f5f9;
+  }
+  .filter-menu-actions {
+    display:flex;
+    gap:6px;
+    margin-bottom:6px;
+  }
+  .filter-selection-status {
+    margin-top:6px;
+    padding:7px 8px 0;
+    border-top:1px solid var(--border);
+    color:var(--muted);
+    font-size:.72rem;
+    font-weight:800;
   }
   .filter-empty-options {
     padding:10px 8px;
@@ -669,8 +690,36 @@
     font-size:1.08rem;
     font-weight:900;
     line-height:1.3;
+    overflow:visible;
+    white-space:normal;
+  }
+  .summary-rank-list {
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+  .summary-rank-row {
+    display:grid;
+    grid-template-columns:auto minmax(0, 1fr) auto;
+    align-items:baseline;
+    gap:7px;
+    min-width:0;
+  }
+  .summary-rank-place {
+    color:var(--brand-cyan);
+    font-size:1.05rem;
+    font-weight:900;
+  }
+  .summary-rank-name {
+    min-width:0;
     overflow:hidden;
     text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .summary-rank-ton {
+    color:var(--text);
+    font-size:.88rem;
+    font-weight:900;
     white-space:nowrap;
   }
   .summary-note {
@@ -1250,7 +1299,7 @@
           <label for="f-ano">Ano</label>
           <div class="filter-input-row">
             <input id="f-ano" list="dl-f-ano" type="text" placeholder="Todos" autocomplete="off">
-            <button class="filter-clear" type="button" onclick="clearFilter('f-ano')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de ano">×</button>
+            <button class="filter-clear" type="button" onclick="clearFilter('f-ano')" title="Remover seleção" aria-label="Remover seleção de ano">×</button>
           </div>
           <datalist id="dl-f-ano"></datalist>
           <div class="filter-combo" data-filter="f-ano">
@@ -1267,7 +1316,7 @@
           <label for="f-mes">Mês</label>
           <div class="filter-input-row">
             <input id="f-mes" list="dl-f-mes" type="text" placeholder="Todos" autocomplete="off">
-            <button class="filter-clear" type="button" onclick="clearFilter('f-mes')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de mÃªs">×</button>
+            <button class="filter-clear" type="button" onclick="clearFilter('f-mes')" title="Remover seleção" aria-label="Remover seleção de mês">×</button>
           </div>
           <datalist id="dl-f-mes"></datalist>
           <div class="filter-combo" data-filter="f-mes">
@@ -1284,7 +1333,7 @@
           <label for="f-semana">Semana</label>
           <div class="filter-input-row">
             <input id="f-semana" list="dl-f-semana" type="text" placeholder="Todas" autocomplete="off">
-            <button class="filter-clear" type="button" onclick="clearFilter('f-semana')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de semana">×</button>
+            <button class="filter-clear" type="button" onclick="clearFilter('f-semana')" title="Remover seleção" aria-label="Remover seleção de semana">×</button>
           </div>
           <datalist id="dl-f-semana"></datalist>
           <div class="filter-combo" data-filter="f-semana">
@@ -1301,7 +1350,7 @@
           <label for="f-data">Data</label>
           <div class="filter-input-row">
             <input id="f-data" list="dl-f-data" type="text" placeholder="Todas" autocomplete="off">
-            <button class="filter-clear" type="button" onclick="clearFilter('f-data')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de data">×</button>
+            <button class="filter-clear" type="button" onclick="clearFilter('f-data')" title="Remover seleção" aria-label="Remover seleção de data">×</button>
           </div>
           <datalist id="dl-f-data"></datalist>
           <div class="filter-combo" data-filter="f-data">
@@ -1318,7 +1367,7 @@
           <label for="f-tipo">Tipo</label>
           <div class="filter-input-row">
             <input id="f-tipo" list="dl-f-tipo" type="text" placeholder="Todos" autocomplete="off">
-            <button class="filter-clear" type="button" onclick="clearFilter('f-tipo')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de tipo">×</button>
+            <button class="filter-clear" type="button" onclick="clearFilter('f-tipo')" title="Remover seleção" aria-label="Remover seleção de tipo">×</button>
           </div>
           <datalist id="dl-f-tipo"></datalist>
           <div class="filter-combo" data-filter="f-tipo">
@@ -1335,7 +1384,7 @@
           <label for="f-embalagem">Embalagem</label>
           <div class="filter-input-row">
             <input id="f-embalagem" list="dl-f-embalagem" type="text" placeholder="Todas" autocomplete="off">
-            <button class="filter-clear" type="button" onclick="clearFilter('f-embalagem')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de embalagem">×</button>
+            <button class="filter-clear" type="button" onclick="clearFilter('f-embalagem')" title="Remover seleção" aria-label="Remover seleção de embalagem">×</button>
           </div>
           <datalist id="dl-f-embalagem"></datalist>
           <div class="filter-combo" data-filter="f-embalagem">
@@ -1352,7 +1401,7 @@
           <label for="f-produto">Produto</label>
           <div class="filter-input-row">
             <input id="f-produto" list="dl-f-produto" type="text" placeholder="Todos" autocomplete="off">
-            <button class="filter-clear" type="button" onclick="clearFilter('f-produto')" title="Remover seleÃ§Ã£o" aria-label="Remover seleÃ§Ã£o de produto">×</button>
+            <button class="filter-clear" type="button" onclick="clearFilter('f-produto')" title="Remover seleção" aria-label="Remover seleção de produto">×</button>
           </div>
           <datalist id="dl-f-produto"></datalist>
           <div class="filter-combo" data-filter="f-produto">
@@ -1387,7 +1436,7 @@
       <section class="whatsapp-bar panel">
         <div>
           <div class="whatsapp-title">Enviar programação via WhatsApp</div>
-          <div class="card-subtitle">Usa a semana vigente quando não houver filtro selecionado.</div>
+          <div class="card-subtitle">Envia somente quando todos os filtros estiverem marcados.</div>
         </div>
         <div class="whatsapp-actions">
           <button class="btn btn-whatsapp" type="button" onclick="sendWhatsApp('geral')">WhatsApp · Geral</button>
@@ -1583,6 +1632,7 @@ if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
 const $ = id => document.getElementById(id);
 const fmtTon = n => Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
 const fmtTonShort = n => Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits:0, maximumFractionDigits:2 });
+const fmtTonCompact = n => `${Number(n || 0).toLocaleString('pt-BR', { maximumFractionDigits:0 })}t`;
 const formatWhatsAppQty = n => `${fmtTonShort(n)} t`;
 const truckIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"></path><path d="M14 10h4l3 3v3h-7z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle></svg>';
 const isCompactChart = () => window.matchMedia('(max-width: 1360px)').matches;
@@ -1592,6 +1642,7 @@ const shouldShowChartLabel = (ctx, totalItems = 0, minValue = 0) => {
   if (isCompactChart()) return totalItems <= 5;
   return totalItems <= 8;
 };
+const chartLabelTon = value => `${fmtTonCompact(value)}`;
 function sizeChartWrap(id, count, orientation = 'vertical') {
   const wrap = $(id);
   if (!wrap) return;
@@ -1959,9 +2010,10 @@ function updateFilterTrigger(id, defaultText) {
   const button = $(id + '-button');
   if (!button) return;
   const text = button.querySelector('.filter-trigger-text');
-  const def = getFilterDef(id);
   const selected = getSelectedValues(id).map(value => filterLabel(id, value));
-  if (text) text.textContent = selected.length ? compactList(selected, 2) : (defaultText || def?.defaultText || 'Todos');
+  if (text) text.textContent = selected.length ? compactList(selected, 2) : 'Vazio';
+  button.classList.toggle('is-empty', !selected.length);
+  button.title = selected.length ? selected.join(', ') : 'Vazio: nenhum item marcado';
 }
 
 function updateFilterSelection(id, value, checked) {
@@ -1992,14 +2044,30 @@ function renderFilterOptions(id, values, defaultText) {
   const items = normalizedItems.filter(item => !search || normalize(item.label).includes(search) || normalize(item.value).includes(search));
   wrap.innerHTML = '';
 
-  if (selected.size) {
-    const clearButton = document.createElement('button');
-    clearButton.type = 'button';
-    clearButton.className = 'filter-menu-action';
-    clearButton.textContent = 'Limpar seleção';
-    clearButton.addEventListener('click', () => clearFilter(id));
-    wrap.appendChild(clearButton);
-  }
+  const actions = document.createElement('div');
+  actions.className = 'filter-menu-actions';
+
+  const selectButton = document.createElement('button');
+  selectButton.type = 'button';
+  selectButton.className = 'filter-menu-action';
+  selectButton.textContent = 'Marcar tudo';
+  selectButton.disabled = !items.length;
+  selectButton.addEventListener('click', () => {
+    setSelectedValues(id, items.map(item => item.value));
+    updateDynamicFilters();
+    positionFilterMenu(id);
+    render();
+  });
+  actions.appendChild(selectButton);
+
+  const clearButton = document.createElement('button');
+  clearButton.type = 'button';
+  clearButton.className = 'filter-menu-action';
+  clearButton.textContent = 'Desmarcar';
+  clearButton.disabled = !selected.size;
+  clearButton.addEventListener('click', () => clearFilter(id));
+  actions.appendChild(clearButton);
+  wrap.appendChild(actions);
 
   if (!items.length) {
     const empty = document.createElement('div');
@@ -2025,6 +2093,11 @@ function renderFilterOptions(id, values, defaultText) {
     label.appendChild(span);
     wrap.appendChild(label);
   });
+
+  const status = document.createElement('div');
+  status.className = 'filter-selection-status';
+  status.textContent = selected.size ? `${selected.size} marcado(s)` : 'Vazio: nenhum marcado';
+  wrap.appendChild(status);
 
   updateFilterTrigger(id, defaultText);
 }
@@ -2124,7 +2197,7 @@ function applyFilters(dataset, state = getFilterState(), excludeId = '') {
     const selected = Array.isArray(expected) ? expected : (expected ? [expected] : []);
     if (!selected.length) return true;
     const actualText = String(actual || '');
-    return selected.some(value => actualText === String(value || '') || normalize(actualText).includes(normalize(value)));
+    return selected.some(value => actualText === String(value || '') || normalize(actualText) === normalize(value));
   };
   const matchesMonth = (actual, expected) => {
     const selected = Array.isArray(expected) ? expected : (expected ? [expected] : []);
@@ -2171,7 +2244,6 @@ function updateDynamicFilters(pass = 1) {
 
 function populateFilters() {
   updateDynamicFilters();
-  applyCurrentWeekDefault();
 }
 
 function setSelectIfOptionExists(id, value) {
@@ -2192,8 +2264,14 @@ function applyCurrentWeekDefault() {
   if (setSelectIfOptionExists('f-semana', currentWeekValue())) updateDynamicFilters();
 }
 
+function hasCompleteFilterSelection(state = getFilterState()) {
+  return SELECT_FILTERS.every(def => state[def.id.replace('f-', '')]?.length);
+}
+
 function filtered() {
-  return applyFilters(allData, getFilterState());
+  const state = getFilterState();
+  if (!hasCompleteFilterSelection(state)) return [];
+  return applyFilters(allData, state);
 }
 
 function sum(data) { return data.reduce((total, row) => total + Number(row.QUANTIDADE || 0), 0); }
@@ -2213,6 +2291,30 @@ function topEntry(grouped) {
   return entries[0] || ['', 0];
 }
 
+function topEntries(grouped, limit = 3) {
+  return Object.entries(grouped)
+    .filter(([, value]) => Number(value || 0) > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit);
+}
+
+function renderRanking(targetId, entries) {
+  const target = $(targetId);
+  if (!target) return;
+  if (!entries.length) {
+    target.textContent = 'Vazio';
+    return;
+  }
+  const trophies = ['🥇', '🥈', '🥉'];
+  target.innerHTML = `<div class="summary-rank-list">${entries.map(([name, value], index) => `
+    <div class="summary-rank-row" title="${escapeHTML(name)}">
+      <span class="summary-rank-place">${trophies[index] || ''} ${index + 1}°</span>
+      <span class="summary-rank-name">${escapeHTML(name)}</span>
+      <span class="summary-rank-ton">${fmtTonCompact(value)}</span>
+    </div>
+  `).join('')}</div>`;
+}
+
 function formatWeekList(weeks) {
   if (!weeks.length) return '—';
   return compactList(weeks.map(w => 'S' + w), 8);
@@ -2230,14 +2332,18 @@ function render() {
 function renderSummary(data) {
   const weeks = uniqueLocal(data, r => weekOf(r));
   const dates = uniqueLocal(data, r => r.DATA_COTA);
-  const [topProduto, topProdutoVal] = topEntry(groupSum(data, r => r.PRODUTO));
-  const [topPack, topPackVal] = topEntry(groupSum(data, r => r.EMBALAGEM));
-  const status = data.length ? `${data.length} registro(s) no período ${periodDescription()}` : 'Nenhum registro encontrado';
+  const topProdutos = topEntries(groupSum(data, r => r.PRODUTO), 3);
+  const topPacks = topEntries(groupSum(data, r => r.EMBALAGEM), 3);
+  const status = data.length
+    ? `${data.length} registro(s) no período ${periodDescription()}`
+    : hasCompleteFilterSelection()
+      ? 'Nenhum registro encontrado'
+      : 'Vazio: marque ao menos uma opção em todos os filtros para carregar os dados';
 
   $('summary-weeks').textContent = weeks.length ? `${weeks.length} semana(s)` : '—';
   $('summary-dates').textContent = `${dates.length} data(s)`;
-  $('summary-top-product').textContent = topProduto ? `${topProduto} · ${fmtTon(topProdutoVal)} ton` : '—';
-  $('summary-top-pack').textContent = topPack ? `${topPack} · ${fmtTon(topPackVal)} ton` : '—';
+  renderRanking('summary-top-product', topProdutos);
+  renderRanking('summary-top-pack', topPacks);
   $('summary-status').textContent = status;
 
   $('meta-weeks').textContent = weeks.length ? `${weeks.length} semana(s)` : '—';
@@ -2277,10 +2383,11 @@ function renderCharts(data) {
 function renderChartProduto(data) {
   const entries = Object.entries(groupSum(data, r => r.PRODUTO)).sort((a, b) => b[1] - a[1]);
   const fullLabels = entries.map(([label]) => label);
-  const labels = fullLabels.map(label => shortenLabel(label, 28));
+  const labels = fullLabels.map(label => shortenLabel(label, 16));
   const values = entries.map(([, value]) => value);
+  const maxValue = Math.max(...values, 0);
   $('subtitle-produto').textContent = `${entries.length} produto(s) do filtro atual`;
-  sizeChartWrap('wrap-produto', entries.length, 'horizontal');
+  sizeChartWrap('wrap-produto', entries.length, 'vertical');
   if (chartProduto) chartProduto.destroy();
   chartProduto = new Chart($('chart-produto'), {
     type:'bar',
@@ -2295,7 +2402,6 @@ function renderChartProduto(data) {
       }]
     },
     options:{
-      indexAxis:'y',
       responsive:true,
       maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
@@ -2303,24 +2409,24 @@ function renderChartProduto(data) {
         legend:{ display:false },
         tooltip:{ callbacks:{
           title:(items) => fullLabels[items[0]?.dataIndex] || items[0]?.label || '',
-          label:ctx => ` Total: ${fmtTon(ctx.parsed.x)} ton`
+          label:ctx => ` Total: ${fmtTon(ctx.parsed.y)} ton`
         } },
         datalabels:{
-          display:(ctx) => shouldShowChartLabel(ctx, entries.length),
+          display:true,
           color:'#12213f',
           anchor:'end',
-          align:'right',
+          align:'top',
           offset:4,
           clamp:true,
           clip:false,
           font:{ family:'DM Sans', size:10, weight:'900' },
-          formatter:(value) => fmtTonShort(value)
+          formatter:chartLabelTon
         }
       },
-      layout:{ padding:{ top:8, right:78, bottom:4 } },
+      layout:{ padding:{ top:22, right:28, bottom:4 } },
       scales:{
-        y:{ grid:{ display:false }, ticks:{ color:'#475569', font:{ family:'DM Sans', size:11, weight:'800' }, autoSkip:false } },
-        x:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
+        x:{ grid:{ display:false }, ticks:{ color:'#475569', font:{ family:'DM Sans', size:10, weight:'800' }, autoSkip:false, maxRotation:45, minRotation:0 } },
+        y:{ beginAtZero:true, suggestedMax:maxValue * 1.16, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
   });
@@ -2330,6 +2436,7 @@ function renderChartPack(data) {
   const entries = Object.entries(groupSum(data, r => r.EMBALAGEM)).sort((a, b) => b[1] - a[1]);
   const labels = entries.map(([label]) => label);
   const values = entries.map(([, value]) => value);
+  const maxValue = Math.max(...values, 0);
   sizeChartWrap('wrap-pack', entries.length, 'horizontal');
   if (chartPack) chartPack.destroy();
   chartPack = new Chart($('chart-pack'), {
@@ -2360,13 +2467,13 @@ function renderChartPack(data) {
           clamp:true,
           clip:false,
           font:{ family:'DM Sans', size:10, weight:'800' },
-          formatter:(value) => fmtTon(value)
+          formatter:chartLabelTon
         }
       },
-      layout:{ padding:{ right:78 } },
+      layout:{ padding:{ right:118 } },
       scales:{
         y:{ grid:{ display:false }, ticks:{ color:'#475569', font:{ family:'DM Sans', size:11, weight:'700' }, autoSkip:false } },
-        x:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
+        x:{ beginAtZero:true, suggestedMax:maxValue * 1.16, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
   });
@@ -2378,6 +2485,7 @@ function renderChartTipo(data) {
   const outros = sum(data.filter(row => !isSimplesRow(row) && !isMistRow(row)));
   const labels = ['Elemento Simples', 'Misturadora', 'Outros'];
   const values = [simples, mist, outros];
+  const maxValue = Math.max(...values, 0);
   sizeChartWrap('wrap-tipo', labels.length, 'horizontal');
   if (chartTipo) chartTipo.destroy();
   chartTipo = new Chart($('chart-tipo'), {
@@ -2408,13 +2516,13 @@ function renderChartTipo(data) {
           clamp:true,
           clip:false,
           font:{ family:'DM Sans', size:11, weight:'900' },
-          formatter:(value) => fmtTon(value)
+          formatter:chartLabelTon
         }
       },
-      layout:{ padding:{ right:82 } },
+      layout:{ padding:{ right:118 } },
       scales:{
         y:{ grid:{ display:false }, ticks:{ color:'#475569', font:{ family:'DM Sans', size:11, weight:'800' }, autoSkip:false } },
-        x:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
+        x:{ beginAtZero:true, suggestedMax:maxValue * 1.16, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
   });
@@ -2482,6 +2590,7 @@ function renderChartDia(data) {
 
   $('subtitle-dia').textContent = subtitle;
   sizeChartWrap('wrap-dia', labels.length, 'vertical');
+  const maxValue = Math.max(...values, 0);
 
   if (chartDia) chartDia.destroy();
   chartDia = new Chart($('chart-dia'), {
@@ -2521,13 +2630,13 @@ function renderChartDia(data) {
           clamp:true,
           clip:false,
           font:{ family:'DM Sans', size:10, weight:'800' },
-          formatter:(value) => fmtTon(value)
+          formatter:chartLabelTon
         }
       },
-      layout:{ padding:{ top:18, right:24 } },
+      layout:{ padding:{ top:22, right:72 } },
       scales:{
         x:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'700' }, autoSkip:false, maxRotation:45, minRotation:0 } },
-        y:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
+        y:{ beginAtZero:true, suggestedMax:maxValue * 1.16, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
       }
     }
   });
@@ -2541,7 +2650,7 @@ function getDefaultWeekRows() {
 }
 
 function getRowsForWhatsApp() {
-  return hasActiveSelection() ? filtered() : getDefaultWeekRows();
+  return filtered();
 }
 
 function sortRowsByDate(rows) {
@@ -2617,7 +2726,10 @@ function sendWhatsApp(mode = 'geral') {
 function renderTable(data) {
   const tbody = $('table-body');
   if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">🔎</div><div>Nenhum registro encontrado</div></div></td></tr>`;
+    const message = hasCompleteFilterSelection()
+      ? 'Nenhum registro encontrado'
+      : 'Vazio: marque ao menos uma opção em todos os filtros';
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">🔎</div><div>${message}</div></div></td></tr>`;
     return;
   }
   const sorted = [...data].sort((a, b) => {
