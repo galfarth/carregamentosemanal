@@ -23,3 +23,5 @@ Abra `index.html` diretamente no navegador. O projeto e 100% estatico e nao exig
 ## Publicacao
 
 Recomendado para portfolio: GitHub Pages com deploy a partir da branch `main` e pasta raiz.
+
+URL esperada apos o primeiro deploy: `https://galfarth.github.io/carregamentosemanal/`.
