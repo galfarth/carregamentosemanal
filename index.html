@@ -55,6 +55,12 @@
 
   .app-shell { min-height:100vh; }
 
+  @media (min-width: 900px) {
+    body {
+      zoom:.75;
+    }
+  }
+
   header {
     position:relative;
     overflow:hidden;
@@ -1793,10 +1799,10 @@ function renderCharts(data) {
 function renderChartProduto(data) {
   const entries = Object.entries(groupSum(data, r => r.PRODUTO)).sort((a, b) => b[1] - a[1]);
   const fullLabels = entries.map(([label]) => label);
-  const labels = fullLabels.map(label => shortenLabel(label, 16));
+  const labels = fullLabels.map(label => shortenLabel(label, 28));
   const values = entries.map(([, value]) => value);
   $('subtitle-produto').textContent = `${entries.length} produto(s) do filtro atual`;
-  sizeChartWrap('wrap-produto', entries.length, 'vertical');
+  sizeChartWrap('wrap-produto', entries.length, 'horizontal');
   if (chartProduto) chartProduto.destroy();
   chartProduto = new Chart($('chart-produto'), {
     type:'bar',
@@ -1811,6 +1817,7 @@ function renderChartProduto(data) {
       }]
     },
     options:{
+      indexAxis:'y',
       responsive:true,
       maintainAspectRatio:false,
       interaction:{ mode:'index', intersect:false },
@@ -1818,24 +1825,24 @@ function renderChartProduto(data) {
         legend:{ display:false },
         tooltip:{ callbacks:{
           title:(items) => fullLabels[items[0]?.dataIndex] || items[0]?.label || '',
-          label:ctx => ` Total: ${fmtTon(ctx.parsed.y)} ton`
+          label:ctx => ` Total: ${fmtTon(ctx.parsed.x)} ton`
         } },
         datalabels:{
           display:(ctx) => shouldShowChartLabel(ctx, entries.length),
           color:'#12213f',
           anchor:'end',
-          align:'top',
-          offset:4,
+          align:'right',
+          offset:6,
           clamp:true,
           clip:false,
           font:{ family:'DM Sans', size:10, weight:'900' },
           formatter:(value) => fmtTonShort(value)
         }
       },
-      layout:{ padding:{ top:22, right:20, bottom:4 } },
+      layout:{ padding:{ top:8, right:44, bottom:4, left:4 } },
       scales:{
-        x:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'800' }, autoSkip:false, maxRotation:38, minRotation:30 } },
-        y:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } }
+        x:{ beginAtZero:true, grid:{ color:'#edf2f9' }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:11, weight:'700' } } },
+        y:{ grid:{ display:false }, ticks:{ color:'#64748b', font:{ family:'DM Sans', size:10, weight:'800' }, autoSkip:false } }
       }
     }
   });
