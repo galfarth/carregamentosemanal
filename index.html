@@ -1731,6 +1731,13 @@ function monthName(month) {
   return MONTH_NAMES[Number(month) - 1] || month || '—';
 }
 
+function dateWeekdayLabel(value) {
+  const date = parseDateBR(value);
+  if (!date) return value || '';
+  const weekday = date.toLocaleDateString('pt-BR', { weekday:'long' });
+  return `${formatDateBR(date)} - ${weekday}`;
+}
+
 function monthYearLabel(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '—';
   return `${MONTH_NAMES[date.getMonth()].slice(0,3)}/${date.getFullYear()}`;
@@ -2012,13 +2019,12 @@ const SELECT_FILTERS = [
   { id:'f-ano', defaultText:'Todos', getValue:r => yearOf(r) },
   { id:'f-mes', defaultText:'Todos', getValue:r => monthOf(r), format:v => ({ value:v, label:monthName(v) }) },
   { id:'f-semana', defaultText:'Todas', getValue:r => weekOf(r) },
-  { id:'f-data', defaultText:'Todas', getValue:r => r.DATA_COTA },
+  { id:'f-data', defaultText:'Todas', getValue:r => r.DATA_COTA, format:v => ({ value:v, label:dateWeekdayLabel(v) }) },
   { id:'f-tipo', defaultText:'Todos', getValue:r => mainTypeOf(r) },
   { id:'f-embalagem', defaultText:'Todas', getValue:r => r.EMBALAGEM },
   { id:'f-produto', defaultText:'Todos', getValue:r => r.PRODUTO }
 ];
 
-const CURRENT_WEEK_DETAIL_FILTERS = ['f-mes', 'f-tipo', 'f-embalagem', 'f-produto'];
 const FILTER_DELIMITER = '||';
 
 function getFilterDef(id) {
@@ -2040,6 +2046,7 @@ function setSelectedValues(id, values) {
 
 function filterLabel(id, value) {
   if (id === 'f-mes') return monthName(value);
+  if (id === 'f-data') return dateWeekdayLabel(value);
   return value || '';
 }
 
@@ -2300,27 +2307,12 @@ function availableFilterValues(id) {
   return [...new Set([...list.options].map(option => option.value).filter(Boolean))];
 }
 
-function sameSelection(current, next) {
-  if (current.length !== next.length) return false;
-  const selected = new Set(current);
-  return next.every(value => selected.has(value));
-}
-
-function selectAllAvailableValues(ids) {
-  let changed = false;
-  ids.forEach(id => {
-    const values = availableFilterValues(id);
-    if (!values.length || sameSelection(getSelectedValues(id), values)) return;
-    setSelectedValues(id, values);
-    changed = true;
-  });
-  return changed;
-}
-
 function selectAvailableValues(id, desiredValues) {
   const available = new Set(availableFilterValues(id));
   const values = desiredValues.filter(value => available.has(value));
-  if (!values.length || sameSelection(getSelectedValues(id), values)) return false;
+  const current = getSelectedValues(id);
+  const selected = new Set(current);
+  if (!values.length || (current.length === values.length && values.every(value => selected.has(value)))) return false;
   setSelectedValues(id, values);
   return true;
 }
@@ -2339,14 +2331,6 @@ function applyCurrentWeekDefault(force = false) {
   if (changed) updateDynamicFilters();
   if (needsWorkdays) changed = selectAvailableValues('f-data', currentWeekWorkdayValues()) || changed;
   if (changed) updateDynamicFilters();
-
-  const updated = getFilterState();
-  const shouldSelectWeekDetails = updated.ano.length && updated.semana.length && updated.data.length && (
-    force || CURRENT_WEEK_DETAIL_FILTERS.every(id => !updated[id.replace('f-', '')]?.length)
-  );
-  if (shouldSelectWeekDetails && selectAllAvailableValues(CURRENT_WEEK_DETAIL_FILTERS)) {
-    updateDynamicFilters();
-  }
 }
 
 function hasAnyFilterSelection(state = getFilterState()) {
@@ -2858,7 +2842,6 @@ function clearFilters() {
     setSelectedValues(def.id, []);
   });
   updateDynamicFilters();
-  applyCurrentWeekDefault(true);
   render();
 }
 
