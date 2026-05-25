@@ -2545,9 +2545,8 @@ function renderChartPack(data) {
 function renderChartTipo(data) {
   const simples = sum(data.filter(isSimplesRow));
   const mist = sum(data.filter(isMistRow));
-  const outros = sum(data.filter(row => !isSimplesRow(row) && !isMistRow(row)));
-  const labels = ['Elemento Simples', 'Misturadora', 'Outros'];
-  const values = [simples, mist, outros];
+  const labels = ['Elemento Simples', 'Misturadora'];
+  const values = [simples, mist];
   const maxValue = Math.max(...values, 0);
   sizeChartWrap('wrap-tipo', labels.length, 'horizontal');
   if (chartTipo) chartTipo.destroy();
@@ -2558,7 +2557,7 @@ function renderChartTipo(data) {
       datasets:[{
         label:'Toneladas',
         data:values,
-        backgroundColor:['#3b82f6','#7c3aed','#94a3b8'],
+        backgroundColor:['#3b82f6','#7c3aed'],
         borderRadius:10,
         borderSkipped:false
       }]
