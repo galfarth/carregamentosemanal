@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Programação de Carregamentos – Eleva Química</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23073a60'/%3E%3Cpath d='M12 53 27 11h13L25 53z' fill='%2312bfd8'/%3E%3Cpath d='M36 11h12l12 42H47z' fill='%23fff'/%3E%3Cpath d='M23 53h21' stroke='%2327d3e7' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23083f66'/%3E%3Cpath d='M10 53 26 11h12L24 53z' fill='%2312bfd8'/%3E%3Cpath d='M31 11h12l16 42H46z' fill='%23ffffff'/%3E%3Cpath d='M25 53 39 18l6 16-8 19z' fill='%23083f66' opacity='.18'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1984,6 +1984,7 @@ const SELECT_FILTERS = [
 ];
 
 const FILTER_DELIMITER = '||';
+const EMPTY_FILTERS = new Set();
 
 function getFilterDef(id) {
   return SELECT_FILTERS.find(def => def.id === id);
@@ -1998,7 +1999,9 @@ function getSelectedValues(id) {
 function setSelectedValues(id, values) {
   const field = $(id);
   if (!field) return;
-  field.value = [...new Set(values.filter(Boolean))].join(FILTER_DELIMITER);
+  const nextValues = [...new Set(values.filter(Boolean))];
+  if (nextValues.length) EMPTY_FILTERS.delete(id);
+  field.value = nextValues.join(FILTER_DELIMITER);
   updateFilterTrigger(id);
 }
 
@@ -2022,6 +2025,7 @@ function updateFilterSelection(id, value, checked) {
   const selected = new Set(getSelectedValues(id));
   if (checked) selected.add(value);
   else selected.delete(value);
+  if (!checked && !selected.size) EMPTY_FILTERS.add(id);
   setSelectedValues(id, [...selected]);
   updateDynamicFilters();
   positionFilterMenu(id);
@@ -2055,6 +2059,7 @@ function renderFilterOptions(id, values, defaultText) {
   selectButton.textContent = 'Marcar tudo';
   selectButton.disabled = !items.length;
   selectButton.addEventListener('click', () => {
+    EMPTY_FILTERS.delete(id);
     setSelectedValues(id, items.map(item => item.value));
     updateDynamicFilters();
     positionFilterMenu(id);
@@ -2195,16 +2200,16 @@ function hasActiveSelection() {
 
 function applyFilters(dataset, state = getFilterState(), excludeId = '') {
   const term = normalize(state.search || '');
-  const matchesFilter = (actual, expected) => {
+  const matchesFilter = (actual, expected, id = '') => {
     const selected = Array.isArray(expected) ? expected : (expected ? [expected] : []);
-    if (!selected.length) return true;
+    if (!selected.length) return id && EMPTY_FILTERS.has(id) && excludeId !== id ? false : true;
     const actualText = String(actual || '');
     return selected.some(value => actualText === String(value || '') || normalize(actualText) === normalize(value));
   };
-  const matchesMonth = (actual, expected) => {
+  const matchesMonth = (actual, expected, id = '') => {
     const selected = Array.isArray(expected) ? expected : (expected ? [expected] : []);
-    if (!selected.length) return true;
-    return selected.some(value => matchesFilter(actual, [value]) || matchesFilter(monthName(actual), [value]));
+    if (!selected.length) return id && EMPTY_FILTERS.has(id) && excludeId !== id ? false : true;
+    return selected.some(value => matchesFilter(actual, [value], id) || matchesFilter(monthName(actual), [value], id));
   };
   return dataset.filter(row => {
     const rowAno = yearOf(row);
@@ -2223,13 +2228,13 @@ function applyFilters(dataset, state = getFilterState(), excludeId = '') {
     ].join(' '));
 
     return (!term || haystack.includes(term)) &&
-      (excludeId === 'f-ano' || matchesFilter(rowAno, state.ano)) &&
-      (excludeId === 'f-mes' || matchesMonth(rowMes, state.mes)) &&
-      (excludeId === 'f-semana' || matchesFilter(rowSemana, state.semana)) &&
-      (excludeId === 'f-data' || matchesFilter(row.DATA_COTA, state.data)) &&
-      (excludeId === 'f-tipo' || matchesFilter(mainTypeOf(row), state.tipo)) &&
-      (excludeId === 'f-embalagem' || matchesFilter(row.EMBALAGEM, state.embalagem)) &&
-      (excludeId === 'f-produto' || matchesFilter(row.PRODUTO, state.produto));
+      (excludeId === 'f-ano' || matchesFilter(rowAno, state.ano, 'f-ano')) &&
+      (excludeId === 'f-mes' || matchesMonth(rowMes, state.mes, 'f-mes')) &&
+      (excludeId === 'f-semana' || matchesFilter(rowSemana, state.semana, 'f-semana')) &&
+      (excludeId === 'f-data' || matchesFilter(row.DATA_COTA, state.data, 'f-data')) &&
+      (excludeId === 'f-tipo' || matchesFilter(mainTypeOf(row), state.tipo, 'f-tipo')) &&
+      (excludeId === 'f-embalagem' || matchesFilter(row.EMBALAGEM, state.embalagem, 'f-embalagem')) &&
+      (excludeId === 'f-produto' || matchesFilter(row.PRODUTO, state.produto, 'f-produto'));
   });
 }
 
@@ -2794,6 +2799,7 @@ function escapeHTML(value) {
 
 function clearFilters() {
   $('f-search').value = '';
+  EMPTY_FILTERS.clear();
   SELECT_FILTERS.forEach(def => {
     const search = $(def.id + '-search');
     if (search) search.value = '';
@@ -2804,6 +2810,7 @@ function clearFilters() {
 }
 
 function clearFilter(id) {
+  EMPTY_FILTERS.add(id);
   setSelectedValues(id, []);
   updateDynamicFilters();
   render();
