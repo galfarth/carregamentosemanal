@@ -1997,7 +1997,6 @@ const SELECT_FILTERS = [
 
 const FILTER_DELIMITER = '||';
 const EMPTY_FILTERS = new Set();
-const HISTORY_OPTION_FILTERS = new Set(['f-ano', 'f-mes', 'f-semana', 'f-data']);
 const CURRENT_WEEK_DEFAULT_FILTERS = ['f-tipo', 'f-embalagem', 'f-produto'];
 
 function getFilterDef(id) {
@@ -2212,17 +2211,18 @@ function hasActiveSelection() {
   return Boolean(state.search) || SELECT_FILTERS.some(def => state[def.id.replace('f-', '')]?.length);
 }
 
-function applyFilters(dataset, state = getFilterState(), excludeId = '') {
+function applyFilters(dataset, state = getFilterState(), excludeId = '', options = {}) {
   const term = normalize(state.search || '');
+  const ignoreEmptyFilters = new Set(options.ignoreEmptyFilters || []);
   const matchesFilter = (actual, expected, id = '') => {
     const selected = Array.isArray(expected) ? expected : (expected ? [expected] : []);
-    if (!selected.length) return id && EMPTY_FILTERS.has(id) && excludeId !== id ? false : true;
+    if (!selected.length) return id && EMPTY_FILTERS.has(id) && excludeId !== id && !ignoreEmptyFilters.has(id) ? false : true;
     const actualText = String(actual || '');
     return selected.some(value => actualText === String(value || '') || normalize(actualText) === normalize(value));
   };
   const matchesMonth = (actual, expected, id = '') => {
     const selected = Array.isArray(expected) ? expected : (expected ? [expected] : []);
-    if (!selected.length) return id && EMPTY_FILTERS.has(id) && excludeId !== id ? false : true;
+    if (!selected.length) return id && EMPTY_FILTERS.has(id) && excludeId !== id && !ignoreEmptyFilters.has(id) ? false : true;
     return selected.some(value => matchesFilter(actual, [value], id) || matchesFilter(monthName(actual), [value], id));
   };
   return dataset.filter(row => {
@@ -2252,11 +2252,41 @@ function applyFilters(dataset, state = getFilterState(), excludeId = '') {
   });
 }
 
+function stateWithoutFilters(state, ids) {
+  const next = { ...state };
+  ids.forEach(id => {
+    next[id.replace('f-', '')] = [];
+  });
+  return next;
+}
+
+function optionBaseForFilter(id, state) {
+  const ignoredByFilter = {
+    'f-ano': ['f-ano', 'f-mes', 'f-semana', 'f-data'],
+    'f-mes': ['f-mes', 'f-semana', 'f-data'],
+    'f-semana': ['f-semana', 'f-data'],
+    'f-data': ['f-data']
+  };
+  const ignored = ignoredByFilter[id] || [id];
+  return applyFilters(allData, stateWithoutFilters(state, ignored), id, { ignoreEmptyFilters: ignored });
+}
+
+function pruneInvalidSelection(id, rawValues) {
+  const current = getSelectedValues(id);
+  if (!current.length) return false;
+  const valid = new Set(rawValues.map(value => String(value)));
+  const next = current.filter(value => valid.has(String(value)));
+  if (next.length === current.length) return false;
+  setSelectedValues(id, next);
+  return true;
+}
+
 function updateDynamicFilters(pass = 1) {
-  const state = getFilterState();
+  let state = getFilterState();
   SELECT_FILTERS.forEach(def => {
-    const base = HISTORY_OPTION_FILTERS.has(def.id) ? allData : applyFilters(allData, state, def.id);
+    const base = optionBaseForFilter(def.id, state);
     const rawValues = [...new Set(base.map(def.getValue).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', { numeric:true }));
+    if (pruneInvalidSelection(def.id, rawValues)) state = getFilterState();
     const values = def.format ? rawValues.map(def.format) : rawValues;
     fillSelect(def.id, values, def.defaultText);
   });
