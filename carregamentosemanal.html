@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Programação de Carregamentos – Eleva Química</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23083f66'/%3E%3Cpath d='M10 53 26 11h12L24 53z' fill='%2312bfd8'/%3E%3Cpath d='M31 11h12l16 42H46z' fill='%23ffffff'/%3E%3Cpath d='M25 53 39 18l6 16-8 19z' fill='%23083f66' opacity='.18'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230f513d'/%3E%3Cpath d='M10 53 26 11h12L24 53z' fill='%2312bfd8'/%3E%3Cpath d='M31 11h12l16 42H46z' fill='%23ffffff'/%3E%3Cpath d='M25 53 39 18l6 16-8 19z' fill='%230f513d' opacity='.18'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1633,7 +1633,15 @@ function sizeChartWrap(id, count, orientation = 'vertical') {
     wrap.style.width = '100%';
   } else {
     wrap.style.height = '100%';
+    if (id === 'wrap-dia' && safeCount <= 3) {
+      wrap.style.width = Math.max(360, safeCount * 170) + 'px';
+      wrap.style.minWidth = wrap.style.width;
+      wrap.style.margin = '0 auto';
+      return;
+    }
     wrap.style.width = Math.max(100, safeCount * 92) + 'px';
+    wrap.style.minWidth = '100%';
+    wrap.style.margin = '0';
   }
 }
 
@@ -1746,6 +1754,10 @@ function currentWeekValue() {
 
 function currentYearValue() {
   return String(new Date().getFullYear());
+}
+
+function currentMonthValue() {
+  return String(new Date().getMonth() + 1).padStart(2, '0');
 }
 
 function currentWeekWorkdayValues() {
@@ -1985,7 +1997,8 @@ const SELECT_FILTERS = [
 
 const FILTER_DELIMITER = '||';
 const EMPTY_FILTERS = new Set();
-const CURRENT_WEEK_DEFAULT_FILTERS = ['f-mes', 'f-tipo', 'f-embalagem', 'f-produto'];
+const HISTORY_OPTION_FILTERS = new Set(['f-ano', 'f-mes', 'f-semana', 'f-data']);
+const CURRENT_WEEK_DEFAULT_FILTERS = ['f-tipo', 'f-embalagem', 'f-produto'];
 
 function getFilterDef(id) {
   return SELECT_FILTERS.find(def => def.id === id);
@@ -2134,7 +2147,7 @@ function positionFilterMenu(id) {
   if (!button || !menu) return;
 
   const rect = button.getBoundingClientRect();
-  const gap = 6;
+  const gap = 2;
   const margin = 12;
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
@@ -2242,7 +2255,7 @@ function applyFilters(dataset, state = getFilterState(), excludeId = '') {
 function updateDynamicFilters(pass = 1) {
   const state = getFilterState();
   SELECT_FILTERS.forEach(def => {
-    const base = applyFilters(allData, state, def.id);
+    const base = HISTORY_OPTION_FILTERS.has(def.id) ? allData : applyFilters(allData, state, def.id);
     const rawValues = [...new Set(base.map(def.getValue).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'pt-BR', { numeric:true }));
     const values = def.format ? rawValues.map(def.format) : rawValues;
     fillSelect(def.id, values, def.defaultText);
@@ -2292,13 +2305,16 @@ function selectAllAvailableValues(id) {
 function applyCurrentWeekDefault(force = false) {
   const state = getFilterState();
   const needsYear = force || !state.ano.length;
+  const needsMonth = force || !state.mes.length;
   const needsWeek = force || !state.semana.length;
   const needsWorkdays = force || !state.data.length;
   const needsDetails = force || CURRENT_WEEK_DEFAULT_FILTERS.some(id => !EMPTY_FILTERS.has(id) && !getSelectedValues(id).length);
-  if (!needsYear && !needsWeek && !needsWorkdays && !needsDetails) return;
+  if (!needsYear && !needsMonth && !needsWeek && !needsWorkdays && !needsDetails) return;
 
   let changed = false;
   if (needsYear) changed = setSelectIfOptionExists('f-ano', currentYearValue()) || changed;
+  if (changed) updateDynamicFilters();
+  if (needsMonth) changed = setSelectIfOptionExists('f-mes', currentMonthValue()) || changed;
   if (changed) updateDynamicFilters();
   if (needsWeek) changed = setSelectIfOptionExists('f-semana', currentWeekValue()) || changed;
   if (changed) updateDynamicFilters();
