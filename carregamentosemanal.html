@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Programação de Carregamentos – Eleva Química</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23073a60'/%3E%3Cpath d='M12 52 28 12h12L25 52z' fill='%2312bfd8'/%3E%3Cpath d='M35 12h12l10 40H45z' fill='%23fff'/%3E%3Cpath d='M17 56h32' stroke='%2327d3e7' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23073a60'/%3E%3Cpath d='M12 53 27 11h13L25 53z' fill='%2312bfd8'/%3E%3Cpath d='M36 11h12l12 42H47z' fill='%23fff'/%3E%3Cpath d='M23 53h21' stroke='%2327d3e7' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -175,25 +175,10 @@
     box-shadow:0 18px 40px rgba(0,0,0,.14);
     padding:18px;
   }
-  .brand-logo-wrap {
-    background:rgba(255,255,255,.96);
-    border-radius:18px;
-    padding:18px 18px 14px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:134px;
-  }
-  .brand-mark {
-    display:block;
-    width:min(100%, 330px);
-    height:auto;
-  }
   .brand-meta {
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:12px;
-    margin-top:14px;
   }
   .meta-box {
     padding:12px 14px;
@@ -1073,9 +1058,7 @@
     .hero-highlights { margin-top:12px; gap:9px; }
     .hero-chip { padding:7px 11px; font-size:.78rem; }
     .brand-card { width:min(100%, 360px); padding:12px; border-radius:20px; }
-    .brand-logo-wrap { min-height:82px; padding:10px 12px; border-radius:15px; }
-    .brand-mark { max-height:92px; object-fit:contain; }
-    .brand-meta { gap:8px; margin-top:8px; }
+    .brand-meta { gap:8px; margin-top:0; }
     .meta-box { padding:8px 10px; border-radius:12px; }
     .meta-label { font-size:.62rem; }
     .meta-value { font-size:.8rem; margin-top:3px; }
@@ -1250,31 +1233,6 @@
       </div>
     </div>
     <aside class="brand-card">
-      <div class="brand-logo-wrap">
-        <svg class="brand-mark" viewBox="0 0 420 160" role="img" aria-label="Logo Carregamento Semanal Eleva" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="markCyan" x1="58" y1="132" x2="152" y2="24" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#10c4dd"/>
-      <stop offset="1" stop-color="#18a5c7"/>
-    </linearGradient>
-    <linearGradient id="markWhite" x1="214" y1="20" x2="330" y2="132" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#edf6fb"/>
-    </linearGradient>
-    <filter id="markShadow" x="0" y="0" width="420" height="160" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#06233c" flood-opacity="0.22"/>
-    </filter>
-  </defs>
-  <rect x="0" y="0" width="420" height="160" rx="28" fill="#073a60"/>
-  <path d="M69 127 128 33h43l-49 94H69Z" fill="url(#markCyan)" filter="url(#markShadow)"/>
-  <path d="M126 33h45l23 43-24 46-22-43-26 48h-43l47-94Z" fill="#12bfd8" opacity="0.94"/>
-  <path d="M182 33h45l70 94h-50L182 33Z" fill="url(#markWhite)" filter="url(#markShadow)"/>
-  <path d="M92 137h178" stroke="#27d3e7" stroke-width="8" stroke-linecap="round" opacity="0.82"/>
-  <path d="M288 137h34" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.95"/>
-  <text x="342" y="73" fill="#ffffff" font-family="DM Sans, Arial, sans-serif" font-size="24" font-weight="800">CS</text>
-  <text x="342" y="98" fill="#87e8f4" font-family="DM Sans, Arial, sans-serif" font-size="12" font-weight="800" letter-spacing="2">SEMANAL</text>
-</svg>
-      </div>
       <div class="brand-meta">
         <div class="meta-box">
           <div class="meta-label">Última atualização</div>
