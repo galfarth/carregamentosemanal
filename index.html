@@ -1761,6 +1761,19 @@ function currentYearValue() {
   return String(new Date().getFullYear());
 }
 
+function currentWeekWorkdayValues() {
+  const today = new Date();
+  const monday = new Date(today);
+  const offset = (today.getDay() + 6) % 7;
+  monday.setDate(today.getDate() - offset);
+
+  return Array.from({ length: 5 }, (_, index) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+    return formatDateBR(date);
+  });
+}
+
 function mainTypeOf(row) {
   if (isMainType(row.TIPO_CARREGAMENTO)) return row.TIPO_CARREGAMENTO;
   if (isMainType(row.CLASSIFICACAO)) return row.CLASSIFICACAO.split('-')[0].trim();
@@ -1983,7 +1996,7 @@ const SELECT_FILTERS = [
   { id:'f-produto', defaultText:'Todos', getValue:r => r.PRODUTO }
 ];
 
-const CURRENT_WEEK_DETAIL_FILTERS = ['f-mes', 'f-data', 'f-tipo', 'f-embalagem', 'f-produto'];
+const CURRENT_WEEK_DETAIL_FILTERS = ['f-mes', 'f-tipo', 'f-embalagem', 'f-produto'];
 const FILTER_DELIMITER = '||';
 
 function getFilterDef(id) {
@@ -2282,20 +2295,31 @@ function selectAllAvailableValues(ids) {
   return changed;
 }
 
+function selectAvailableValues(id, desiredValues) {
+  const available = new Set(availableFilterValues(id));
+  const values = desiredValues.filter(value => available.has(value));
+  if (!values.length || sameSelection(getSelectedValues(id), values)) return false;
+  setSelectedValues(id, values);
+  return true;
+}
+
 function applyCurrentWeekDefault(force = false) {
   const state = getFilterState();
   const needsYear = force || !state.ano.length;
   const needsWeek = force || !state.semana.length;
-  if (!needsYear && !needsWeek) return;
+  const needsWorkdays = force || !state.data.length;
+  if (!needsYear && !needsWeek && !needsWorkdays) return;
 
   let changed = false;
   if (needsYear) changed = setSelectIfOptionExists('f-ano', currentYearValue()) || changed;
   if (changed) updateDynamicFilters();
   if (needsWeek) changed = setSelectIfOptionExists('f-semana', currentWeekValue()) || changed;
   if (changed) updateDynamicFilters();
+  if (needsWorkdays) changed = selectAvailableValues('f-data', currentWeekWorkdayValues()) || changed;
+  if (changed) updateDynamicFilters();
 
   const updated = getFilterState();
-  const shouldSelectWeekDetails = updated.ano.length && updated.semana.length && (
+  const shouldSelectWeekDetails = updated.ano.length && updated.semana.length && updated.data.length && (
     force || CURRENT_WEEK_DETAIL_FILTERS.every(id => !updated[id.replace('f-', '')]?.length)
   );
   if (shouldSelectWeekDetails && selectAllAvailableValues(CURRENT_WEEK_DETAIL_FILTERS)) {
